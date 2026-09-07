@@ -22,6 +22,11 @@ import pandas as pd
 from fastapi import FastAPI, HTTPException, Query, Body
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
+import dotenv
+from google import genai
+from google.genai import types
+
+dotenv.load_dotenv()
 
 from vigil.inference import load_inference_engine, get_risk_tier
 from vigil.replay import get_project_replay
@@ -526,4 +531,134 @@ def seed_demo_scenarios_endpoint(scenario: str = Query("all", pattern="^(1|2|all
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to seed demo scenarios: {str(e)}")
 
+
+# ==============================================================================
+# AI INTELLIGENCE ASSISTANT (GEMINI)
+# ==============================================================================
+
+class ProjectBriefRequest(BaseModel):
+    project_id: str
+
+class AIFindingsResponse(BaseModel):
+    summary: str
+    key_findings: List[str]
+    evidence: List[str]
+    governance_status: str
+    recommended_review: str
+
+@app.post("/api/ai/project-brief", response_model=AIFindingsResponse)
+def generate_project_brief(payload: ProjectBriefRequest) -> Dict[str, Any]:
+    """
+    Generate a natural language brief using Gemini, based strictly on verified VIGIL data.
+    """
+    # 1. Validate project ID and fetch verified data
+    project_id = payload.project_id
+    ctx = get_app_context()
+    
+    # Try operational monitoring first
+    try:
+        proj = monitoring.get_project(project_id)
+        obs = monitoring.get_project_observations(project_id)
+        status_info = monitoring.get_project_status(project_id)
+        warnings = monitoring.get_project_warnings(project_id)
+        audit_events = monitoring.get_audit_trail(project_id)
+        
+        rep = {
+            "project_id": proj["project_id"],
+            "project_name": proj["project_name"],
+            "sector": proj["sector"],
+            "timeline": obs
+        }
+    except Exception:
+        # Fallback to historical archive
+        try:
+            rep = get_project_replay(project_id, dataset_path=ctx["dataset_path"], engine=ctx["engine"])
+            status_info = {}
+            warnings = []
+            audit_events = []
+        except ValueError:
+            raise HTTPException(status_code=404, detail=f"Project '{project_id}' not found.")
+
+    if not rep["timeline"]:
+        raise HTTPException(status_code=404, detail=f"No timeline observations for project '{project_id}'.")
+    
+    latest_rec = rep["timeline"][-1]
+    
+    # 2. Build verified context
+    def safe_val(val):
+        if val is None:
+            return "unavailable"
+        if isinstance(val, float) and (math.isnan(val) or math.isinf(val)):
+            return "unavailable"
+        return val
+
+    context = {
+        "project_identity": {
+            "id": rep["project_id"],
+            "name": rep["project_name"],
+            "sector": rep["sector"]
+        },
+        "latest_observation_month": safe_val(latest_rec.get("reporting_month")),
+        "trajectory_metrics": {
+            "financial_progress_pct": safe_val(latest_rec.get("financial_progress")),
+            "schedule_deviation_months": safe_val(latest_rec.get("schedule_deviation_months")),
+            "financial_velocity_1m": safe_val(latest_rec.get("V_fin_1m"))
+        },
+        "model_risk": {
+            "calibrated_probability": safe_val(latest_rec.get("pred_prob")),
+            "risk_tier": safe_val(latest_rec.get("risk_tier")),
+            "top_drivers": latest_rec.get("top_explanations", [])
+        },
+        "governance_state": {
+            "current_status": safe_val(status_info.get("current_status")),
+            "is_escalated": safe_val(status_info.get("escalation_status", {}).get("is_escalated", False)),
+            "is_recovering": safe_val(status_info.get("recovery_status", {}).get("is_recovering", False))
+        },
+        "active_warnings": len(warnings),
+        "recent_audit_events": [e["event_type"] for e in audit_events[-3:]] if audit_events else []
+    }
+
+    # 3. Invoke Gemini
+    api_key = os.environ.get("GEMINI_API_KEY")
+    if not api_key:
+        raise HTTPException(status_code=503, detail="AI interpretation layer is currently unavailable (missing configuration).")
+
+    try:
+        client = genai.Client(api_key=api_key)
+        
+        system_instruction = (
+            "You are the VIGIL Intelligence Assistant. "
+            "VIGIL is an infrastructure early-warning system. "
+            "You explain verified information produced by the VIGIL backend. "
+            "You MUST NOT invent facts. "
+            "You MUST NOT calculate or modify risk probabilities. "
+            "You MUST NOT create new thresholds. "
+            "You MUST NOT determine contractor fault. "
+            "You MUST NOT independently decide whether authority escalation is required. "
+            "You MUST distinguish model risk from governance action. "
+            "If information is unavailable, explicitly say so. "
+            "Use only the supplied project context. "
+            "When explaining a warning, identify the actual observed evidence supplied by VIGIL. "
+            "When describing recovery, only call it recovery if the supplied governance state/evidence indicates recovery. "
+            "Keep answers concise, professional and suitable for an infrastructure monitoring officer. "
+            "For 'recommended_review', phrase it as something an officer may review (e.g. 'Review the contractor's next reported progress'), DO NOT issue enforcement decisions."
+        )
+
+        response = client.models.generate_content(
+            model="gemini-3.0-flash",
+            contents=f"Project Context: {context}",
+            config=types.GenerateContentConfig(
+                system_instruction=system_instruction,
+                response_mime_type="application/json",
+                response_schema=AIFindingsResponse,
+                temperature=0.0
+            )
+        )
+        
+        import json
+        return json.loads(response.text)
+        
+    except Exception as e:
+        # Fallback without breaking VIGIL
+        raise HTTPException(status_code=503, detail=f"AI interpretation layer encountered an error: {str(e)}")
 

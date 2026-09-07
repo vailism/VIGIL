@@ -42,3 +42,8 @@ DATA/raw_extractions.csv
 *.sqlite
 *.sqlite3
 Dashboard copy/
+
+# Environment variables
+.env
+.env.*
+!.env.example

@@ -7,7 +7,7 @@ const SECTORS = ['ALL','Road Transport and Highways','Railways','Power','Petrole
 const RISK_TIERS = ['ALL','NORMAL','WATCH','REVIEW','ESCALATE'];
 const GOV_STATES = ['ALL','ACTIVE','WARNING_ISSUED','UNDER_RECOVERY','RECOVERED','ESCALATED'];
 
-const riskColor = r => r >= 0.50 ? '#b91c1c' : r >= 0.45 ? '#ea580c' : r >= 0.40 ? '#d97706' : '#6b7194';
+const riskColor = r => r >= 0.50 ? '#dc2626' : r >= 0.45 ? '#ea580c' : r >= 0.40 ? '#d97706' : '#64748b';
 
 export default function Projects() {
   const navigate = useNavigate();
@@ -66,33 +66,33 @@ export default function Projects() {
     return true;
   });
 
-  const sel = 'border-b-2 border-amber-600 text-[#eef0f6] font-medium';
-  const unsel = 'border-b-2 border-transparent text-[#6b7194] hover:text-[#a0a5bd]';
-  const inputCls = 'px-2.5 py-1.5 bg-[#161922] border border-[#262a3a] text-[#c8ccd8] text-[11px] rounded focus:outline-none focus:border-amber-600/50';
+  const sel = 'border-b-2 border-slate-900 text-slate-900 font-bold';
+  const unsel = 'border-b-2 border-transparent text-slate-500 hover:text-slate-700 font-semibold';
+  const inputCls = 'px-3 py-2 bg-white/90 border border-slate-200 text-slate-800 text-[11px] font-medium rounded-2xl shadow-sm focus:outline-none focus:border-navy-300 focus:ring-2 focus:ring-navy-100 transition-all';
 
   return (
-    <div className="p-6 min-w-0">
+    <div className="p-4 min-w-0 h-full flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between mb-5">
-        <div />
-        <button onClick={() => setShowOnboard(true)} className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-[11px] font-medium rounded transition-colors">
+      <div className="flex items-center justify-between mb-4 shrink-0">
+        <h1 className="text-[20px] font-bold text-slate-900 tracking-tight">Project Registry</h1>
+        <button onClick={() => setShowOnboard(true)} className="px-3 py-2 bg-navy-900 hover:bg-navy-800 text-white text-[12px] font-bold uppercase rounded-md transition-colors">
           + Onboard project
         </button>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-6 border-b border-[#262a3a] mb-4 text-[12px]">
-        <button onClick={() => setActiveTab('monitored')} className={`pb-2.5 ${activeTab === 'monitored' ? sel : unsel}`}>
+      <div className="flex gap-6 border-b border-slate-200 mb-4 text-[11px] uppercase tracking-[0.16em] shrink-0">
+        <button onClick={() => setActiveTab('monitored')} className={`pb-2.5 transition-colors ${activeTab === 'monitored' ? sel : unsel}`}>
           Active monitoring ({monitoredList.length})
         </button>
-        <button onClick={() => setActiveTab('portfolio')} className={`pb-2.5 ${activeTab === 'portfolio' ? sel : unsel}`}>
+        <button onClick={() => setActiveTab('portfolio')} className={`pb-2.5 transition-colors ${activeTab === 'portfolio' ? sel : unsel}`}>
           National archive ({totalPortfolio.toLocaleString()})
         </button>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-2.5 mb-4">
-        <input type="text" placeholder="Search project ID or name..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className={`${inputCls} w-56`} />
+      <div className="flex flex-wrap gap-3 mb-4 shrink-0">
+        <input type="text" placeholder="Search project ID or name..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className={`${inputCls} w-64`} />
         <select value={selectedSector} onChange={e => setSelectedSector(e.target.value)} className={inputCls}>
           <option value="ALL">Sector: All</option>
           {SECTORS.filter(s => s !== 'ALL').map(s => <option key={s} value={s}>{s}</option>)}
@@ -110,61 +110,75 @@ export default function Projects() {
       </div>
 
       {/* Table */}
-      <div className="bg-[#161922] border border-[#262a3a] rounded overflow-x-auto min-w-0">
-        <table className="w-full text-[12px] border-collapse whitespace-nowrap">
-          <thead>
-            <tr className="border-b border-[#262a3a] text-[#6b7194] text-[11px]">
-              <th className="text-left px-4 py-2.5 font-medium">Project</th>
-              <th className="text-left px-3 py-2.5 font-medium">Sector</th>
-              <th className="text-right px-3 py-2.5 font-medium">Cost</th>
-              {activeTab === 'monitored' && <><th className="text-right px-3 py-2.5 font-medium">Fin. prog</th><th className="text-right px-3 py-2.5 font-medium">Delay</th></>}
-              <th className="text-right px-3 py-2.5 font-medium">Risk</th>
-              <th className="text-left px-3 py-2.5 font-medium">Tier</th>
-              {activeTab === 'monitored' && <><th className="text-left px-3 py-2.5 font-medium">Trajectory</th><th className="text-left px-3 py-2.5 font-medium">Status</th></>}
-              <th className="text-right px-3 py-2.5 font-medium">Report</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan={10} className="px-4 py-8 text-center text-[#4a5070]">Loading...</td></tr>
-            ) : activeTab === 'monitored' ? filteredMon.map(p => (
-              <tr key={p.project_id} onClick={() => navigate(`/projects/${encodeURIComponent(p.project_id)}`)} className="border-b border-[#1e2235] hover:bg-[#1c1f2e] cursor-pointer transition-colors">
-                <td className="px-4 py-2.5 max-w-[220px]">
-                  <div className="text-[#eef0f6] font-medium truncate">{p.project_name}</div>
-                  <div className="text-[10px] text-[#4a5070] font-mono mt-0.5 truncate">{p.project_id}</div>
-                </td>
-                <td className="px-3 py-2.5 text-[#6b7194] truncate max-w-[120px]">{p.sector}</td>
-                <td className="px-3 py-2.5 text-right font-mono text-[#6b7194]">{formatINR(p.sanctioned_cost)}</td>
-                <td className="px-3 py-2.5 text-right font-mono text-[#6b7194]">{p.financial_progress !== null ? formatPercent(p.financial_progress) : '—'}</td>
-                <td className="px-3 py-2.5 text-right font-mono text-[#6b7194]">{p.schedule_deviation_months !== null ? formatDelayMonths(p.schedule_deviation_months) : '—'}</td>
-                <td className="px-3 py-2.5 text-right font-mono font-medium" style={{ color: p.latest_risk !== null ? riskColor(p.latest_risk) : '#4a5070' }}>
-                  {p.latest_risk !== null ? formatPercent(p.latest_risk) : '—'}
-                </td>
-                <td className="px-3 py-2.5 font-mono text-[11px] text-[#6b7194]">{p.latest_risk_tier}</td>
-                <td className="px-3 py-2.5 text-[11px]" style={{ color: p.trajectory.includes('Deteriorating') ? '#ea580c' : p.trajectory.includes('Improving') ? '#9ca3af' : '#4a5070' }}>{p.trajectory}</td>
-                <td className="px-3 py-2.5 text-[11px]">
-                  <span className="flex items-center gap-1.5" style={{ color: p.current_status === 'ESCALATED' ? '#b91c1c' : p.current_status === 'WARNING_ISSUED' ? '#ea580c' : '#6b7194' }}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${p.current_status === 'ESCALATED' ? 'bg-red-700' : p.current_status === 'WARNING_ISSUED' ? 'bg-orange-600' : p.current_status === 'RECOVERED' ? 'bg-gray-500' : 'bg-[#4a5070]'}`} />
-                    {p.current_status.replace(/_/g, ' ')}
-                  </span>
-                </td>
-                <td className="px-3 py-2.5 text-right font-mono text-[#4a5070]">{p.latest_observation}</td>
+      <div className="panel-strong overflow-hidden flex-1 flex flex-col min-h-0">
+        <div className="overflow-auto flex-1">
+          <table className="w-full text-left text-[13px] border-collapse whitespace-nowrap">
+            <thead className="bg-slate-50/95 backdrop-blur sticky top-0 z-10 border-b border-slate-200">
+              <tr className="text-slate-500 font-bold uppercase tracking-[0.28em]">
+                <th className="px-4 py-3">Project</th>
+                <th className="px-3 py-3">Sector</th>
+                <th className="text-right px-3 py-3">Cost</th>
+                {activeTab === 'monitored' && <><th className="text-right px-3 py-3">Fin. prog</th><th className="text-right px-3 py-3">Delay</th></>}
+                <th className="text-right px-3 py-3">Risk</th>
+                <th className="px-3 py-3 text-center">Tier</th>
+                {activeTab === 'monitored' && <><th className="px-3 py-3 text-center">Trajectory</th><th className="px-3 py-3">Status</th></>}
+                <th className="text-right px-3 py-3">Report</th>
               </tr>
-            )) : filteredPort.map(p => (
-              <tr key={p.project_id} onClick={() => navigate(`/projects/${encodeURIComponent(p.project_id)}`)} className="border-b border-[#1e2235] hover:bg-[#1c1f2e] cursor-pointer transition-colors">
-                <td className="px-4 py-2.5 max-w-[260px]">
-                  <div className="text-[#eef0f6] font-medium truncate">{p.project_name}</div>
-                  <div className="text-[10px] text-[#4a5070] font-mono mt-0.5 truncate">{p.project_id}</div>
-                </td>
-                <td className="px-3 py-2.5 text-[#6b7194] truncate max-w-[130px]">{p.sector}</td>
-                <td className="px-3 py-2.5 text-right font-mono text-[#6b7194]">{formatINR(p.baseline_cost)}</td>
-                <td className="px-3 py-2.5 text-right font-mono font-medium" style={{ color: riskColor(p.latest_risk) }}>{formatPercent(p.latest_risk)}</td>
-                <td className="px-3 py-2.5 font-mono text-[11px] text-[#6b7194]">{p.latest_risk_tier}</td>
-                <td className="px-3 py-2.5 text-right font-mono text-[#4a5070]">{p.latest_observation}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-slate-100 font-medium">
+              {loading ? (
+                <tr><td colSpan={10} className="px-4 py-12 text-center text-slate-400 italic">Loading telemetry...</td></tr>
+              ) : activeTab === 'monitored' ? filteredMon.map(p => (
+                <tr key={p.project_id} onClick={() => navigate(`/projects/${encodeURIComponent(p.project_id)}`)} className="hover:bg-slate-50 cursor-pointer transition-colors">
+                  <td className="px-4 py-3 max-w-[220px]">
+                    <div className="text-slate-900 font-bold truncate leading-tight">{p.project_name}</div>
+                    <div className="text-[10px] text-slate-500 font-mono mt-0.5 truncate">{p.project_id}</div>
+                  </td>
+                  <td className="px-3 py-3 text-slate-600 truncate max-w-[120px]">{p.sector}</td>
+                  <td className="px-3 py-3 text-right font-mono text-slate-700">{formatINR(p.sanctioned_cost)}</td>
+                  <td className="px-3 py-3 text-right font-mono text-slate-700">{p.financial_progress !== null ? formatPercent(p.financial_progress) : '—'}</td>
+                  <td className="px-3 py-3 text-right font-mono text-slate-700">{p.schedule_deviation_months !== null ? formatDelayMonths(p.schedule_deviation_months) : '—'}</td>
+                  <td className="px-3 py-3 text-right font-mono font-bold" style={{ color: p.latest_risk !== null ? riskColor(p.latest_risk) : '#94a3b8' }}>
+                    {p.latest_risk !== null ? formatPercent(p.latest_risk) : '—'}
+                  </td>
+                  <td className="px-3 py-3 text-center">
+                    <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest ${
+                      p.latest_risk_tier === 'ESCALATE' ? 'text-red-700 bg-red-50 border border-red-200' :
+                      p.latest_risk_tier === 'WATCH' ? 'text-amber-700 bg-amber-50 border border-amber-200' :
+                      'text-slate-500 bg-slate-50 border border-slate-200'
+                    }`}>{p.latest_risk_tier}</span>
+                  </td>
+                  <td className="px-3 py-3 text-center font-bold text-[10px]" style={{ color: p.trajectory.includes('Deteriorating') ? '#ea580c' : p.trajectory.includes('Improving') ? '#64748b' : '#94a3b8' }}>{p.trajectory}</td>
+                  <td className="px-3 py-3">
+                    <span className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider" style={{ color: p.current_status === 'ESCALATED' ? '#dc2626' : p.current_status === 'WARNING_ISSUED' ? '#ea580c' : '#64748b' }}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${p.current_status === 'ESCALATED' ? 'bg-red-600' : p.current_status === 'WARNING_ISSUED' ? 'bg-orange-500' : p.current_status === 'RECOVERED' ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                      {(p.current_status || 'ACTIVE').replace(/_/g, ' ')}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 text-right font-mono text-slate-500">{p.latest_observation}</td>
+                </tr>
+              )) : filteredPort.map(p => (
+                <tr key={p.project_id} onClick={() => navigate(`/projects/${encodeURIComponent(p.project_id)}`)} className="hover:bg-slate-50 cursor-pointer transition-colors">
+                  <td className="px-4 py-3 max-w-[260px]">
+                    <div className="text-slate-900 font-bold truncate leading-tight">{p.project_name}</div>
+                    <div className="text-[10px] text-slate-500 font-mono mt-0.5 truncate">{p.project_id}</div>
+                  </td>
+                  <td className="px-3 py-3 text-slate-600 truncate max-w-[130px]">{p.sector}</td>
+                  <td className="px-3 py-3 text-right font-mono text-slate-700">{formatINR(p.baseline_cost)}</td>
+                  <td className="px-3 py-3 text-right font-mono font-bold" style={{ color: riskColor(p.latest_risk) }}>{formatPercent(p.latest_risk)}</td>
+                  <td className="px-3 py-3 text-center">
+                    <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest ${
+                      p.latest_risk_tier === 'ESCALATE' ? 'text-red-700 bg-red-50 border border-red-200' :
+                      p.latest_risk_tier === 'WATCH' ? 'text-amber-700 bg-amber-50 border border-amber-200' :
+                      'text-slate-500 bg-slate-50 border border-slate-200'
+                    }`}>{p.latest_risk_tier}</span>
+                  </td>
+                  <td className="px-3 py-3 text-right font-mono text-slate-500">{p.latest_observation}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       <OnboardModal isOpen={showOnboard} onClose={() => setShowOnboard(false)} onSuccess={loadData} />
     </div>

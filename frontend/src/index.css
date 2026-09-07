@@ -1,19 +1,35 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --color-base: #0f1117;
-  --color-surface: #161922;
-  --color-surface-alt: #1c1f2e;
-  --color-border: #262a3a;
-  --color-border-light: #2f3447;
-  --color-text: #c8ccd8;
-  --color-text-dim: #6b7194;
-  --color-text-bright: #eef0f6;
-  --color-accent: #d97706;
-  --color-danger: #b91c1c;
-  --color-warn: #d97706;
-  --color-ok: #6b7280;
+  --color-navy-50: #eef4ff;
+  --color-navy-100: #dce8ff;
+  --color-navy-200: #bfd2ff;
+  --color-navy-300: #95b3ff;
+  --color-navy-400: #658fff;
+  --color-navy-500: #3d6cff;
+  --color-navy-600: #214fd9;
+  --color-navy-700: #1737a7;
+  --color-navy-800: #112975;
+  --color-navy-900: #0b1c4f;
+
+  --color-base: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f1f5f9;
+  --color-border: #e2e8f0;
+  --color-border-light: #f8fafc;
+  --color-text: #334155;
+  --color-text-dim: #64748b;
+  --color-text-bright: #0f172a;
+  
+  --color-accent: #0f172a;
+  --color-danger: #dc2626;
+  --color-warn: #ea580c;
+  --color-ok: #059669;
+  
+  --color-sidebar-bg: #0B132B;
+  --color-sidebar-text: #94a3b8;
+  --color-sidebar-text-active: #ffffff;
+  
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 }
@@ -22,9 +38,13 @@
   margin: 0; padding: 0; box-sizing: border-box;
 }
 
+html, body, #root {
+  min-height: 100%;
+}
+
 html {
   font-family: var(--font-sans);
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -36,17 +56,62 @@ body {
   overflow-x: hidden;
 }
 
+#root {
+  isolation: isolate;
+}
+
 /* Data typography */
 .font-mono, table, .recharts-text, .tabular-nums {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
+button, input, select, textarea {
+  font: inherit;
+}
+
+::placeholder {
+  color: #94a3b8;
+}
+
+.app-shell {
+  position: relative;
+}
+
+.app-shell::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(120deg, rgba(15, 23, 42, 0.025), transparent 20%),
+    linear-gradient(300deg, rgba(33, 79, 217, 0.04), transparent 25%);
+  z-index: -1;
+}
+
+.panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 6px 18px rgba(11, 22, 45, 0.06);
+  border-radius: 8px;
+}
+
+.panel-strong {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 8px 22px rgba(11, 22, 45, 0.06);
+  border-radius: 8px;
+}
+
+.soft-grid {
+  background-image: none;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--color-base); }
-::-webkit-scrollbar-thumb { background: #363b50; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #4a5070; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
 /* Recharts tooltip */
 .recharts-default-tooltip {
@@ -57,8 +122,17 @@ body {
   font-size: 11px !important;
   padding: 8px 12px !important;
   border-radius: 4px !important;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
 }
 
 /* Selection */
-::selection { background: rgba(217, 119, 6, 0.3); }
+::selection { background: rgba(15, 23, 42, 0.1); }
+
+.animate-fade-in {
+  animation: fade-in 180ms ease-out;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
