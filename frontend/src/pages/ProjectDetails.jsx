@@ -1,31 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  ResponsiveContainer,
-  ComposedChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ReferenceLine,
-  ReferenceDot
+  ResponsiveContainer, ComposedChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ReferenceLine, ReferenceDot
 } from 'recharts';
 import {
-  getMonitoredProject,
-  getMonitoredProjectStatus,
-  getMonitoredProjectObservations,
-  getMonitoredProjectWarnings,
-  getMonitoredProjectAudit,
-  getProjectDetail,
-  getProjectReplay,
-  formatINR,
-  formatPercent,
-  formatDelayMonths
+  getMonitoredProject, getMonitoredProjectStatus, getMonitoredProjectObservations,
+  getMonitoredProjectWarnings, getMonitoredProjectAudit, getProjectDetail, getProjectReplay,
+  formatINR, formatPercent, formatDelayMonths
 } from '../services/api';
 import ObservationModal from '../components/modals/ObservationModal';
 import WarningResponseModal from '../components/modals/WarningResponseModal';
-import { ArrowLeft, Plus, MessageSquare, Activity, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, Plus, ChevronRight, Sparkles, MessageSquare } from 'lucide-react';
 
 export default function ProjectDetails() {
   const { id } = useParams();
@@ -46,6 +31,33 @@ export default function ProjectDetails() {
   const [showObservationModal, setShowObservationModal] = useState(false);
   const [showResponseModal, setShowResponseModal] = useState(false);
   const [selectedWarning, setSelectedWarning] = useState(null);
+
+  // Ask VIGIL state
+  const [askVigilStatus, setAskVigilStatus] = useState('idle'); // idle, loading, success, error
+  const [askVigilData, setAskVigilData] = useState(null);
+  const [askVigilError, setAskVigilError] = useState(null);
+
+  const handleAskVigil = async () => {
+    setAskVigilStatus('loading');
+    setAskVigilError(null);
+    try {
+      const res = await fetch('/api/ai/project-brief', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project_id: id })
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || 'Failed to generate intelligence brief.');
+      }
+      const data = await res.json();
+      setAskVigilData(data);
+      setAskVigilStatus('success');
+    } catch (e) {
+      setAskVigilError(e.message);
+      setAskVigilStatus('error');
+    }
+  };
 
   const fetchProjectData = async () => {
     setLoading(true);
@@ -129,20 +141,21 @@ export default function ProjectDetails() {
 
   if (loading) {
     return (
-      <div className="py-24 text-center text-[#6b7194]">
-        <p className="text-xs font-mono">Loading telemetry for project: {id}...</p>
+      <div className="flex items-center justify-center h-96 text-slate-500 text-sm font-medium">
+        <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin mr-3" />
+        Loading telemetry for project: {id}...
       </div>
     );
   }
 
   if (error || !project) {
     return (
-      <div className="p-8 max-w-lg mx-auto text-center border border-[#262a3a] bg-[#161922] rounded mt-12">
-        <h2 className="text-sm font-semibold text-[#eef0f6]">Project Not Found</h2>
-        <p className="text-xs text-[#6b7194] mt-1.5">{error || `Project ID '${id}' not in registry.`}</p>
+      <div className="p-8 max-w-lg mx-auto text-center border border-slate-200 bg-white rounded shadow-sm mt-12">
+        <h2 className="text-sm font-bold text-slate-800">Project Not Found</h2>
+        <p className="text-xs text-slate-500 mt-2">{error || `Project ID '${id}' not in registry.`}</p>
         <button
           onClick={() => navigate('/projects')}
-          className="mt-4 px-3.5 py-1.5 text-xs font-semibold bg-amber-600 hover:bg-amber-500 text-[#0f1117] rounded transition-colors"
+          className="mt-4 px-4 py-2 text-xs font-bold text-white bg-slate-800 hover:bg-slate-700 rounded transition-colors"
         >
           Return to Registry
         </button>
@@ -163,7 +176,6 @@ export default function ProjectDetails() {
   const activeWarning = warnings.find((w) => w.status === 'ISSUED') || (warnings.length > 0 ? warnings[warnings.length - 1] : null);
   const canRespondToWarning = isOperational && activeWarning && activeWarning.status === 'ISSUED';
 
-  // Parse evidence / risk drivers (strictly deterministic TreeSHAP)
   let riskDrivers = [];
   try {
     if (latestObs?.top_factors_json) {
@@ -175,37 +187,27 @@ export default function ProjectDetails() {
     riskDrivers = [];
   }
 
-  // Trajectory direction
   let trajectoryLabel = 'Stable';
   if (observations.length >= 2) {
     const prev = observations[observations.length - 2];
-    if (latestObs?.pred_prob > prev.pred_prob + 0.02) {
-      trajectoryLabel = '↓ Deteriorating';
-    } else if (latestObs?.pred_prob < prev.pred_prob - 0.02) {
-      trajectoryLabel = '↑ Improving';
-    }
+    if (latestObs?.pred_prob > prev.pred_prob + 0.02) trajectoryLabel = '↓ Deteriorating';
+    else if (latestObs?.pred_prob < prev.pred_prob - 0.02) trajectoryLabel = '↑ Improving';
   } else if (isRecovered) {
     trajectoryLabel = '↑ Improving';
   } else if (hasWarning || isEscalated) {
     trajectoryLabel = '↓ Deteriorating';
   }
 
-  // Build chart dataset with annotated milestones
   const chartData = observations.map((obs, idx) => {
     const riskPct = obs.pred_prob !== null && obs.pred_prob !== undefined
       ? parseFloat((obs.pred_prob * 100).toFixed(2))
       : null;
 
     let milestoneLabel = null;
-    if (warnings.some((w) => w.reporting_month === obs.reporting_month)) {
-      milestoneLabel = 'Warning Issued';
-    } else if (isRecovered && idx === observations.length - 1) {
-      milestoneLabel = 'Recovered';
-    } else if (isEscalated && idx === observations.length - 1) {
-      milestoneLabel = 'Escalated';
-    } else if (obs.schedule_deviation_months && obs.schedule_deviation_months >= 36 && idx === 2) {
-      milestoneLabel = 'Deterioration';
-    }
+    if (warnings.some((w) => w.reporting_month === obs.reporting_month)) milestoneLabel = 'Warning Issued';
+    else if (isRecovered && idx === observations.length - 1) milestoneLabel = 'Recovered';
+    else if (isEscalated && idx === observations.length - 1) milestoneLabel = 'Escalated';
+    else if (obs.schedule_deviation_months && obs.schedule_deviation_months >= 36 && idx === 2) milestoneLabel = 'Deterioration';
 
     return {
       month: obs.reporting_month,
@@ -217,444 +219,348 @@ export default function ProjectDetails() {
   });
 
   return (
-    <div className="p-6 space-y-5 min-w-0">
-      {/* Top back navigation */}
-      <div>
+    <div className="p-5 space-y-5 min-w-0">
+      
+      <div className="flex items-center gap-3">
         <button
           onClick={() => navigate('/projects')}
-          className="inline-flex items-center gap-1 text-xs text-[#6b7194] hover:text-[#eef0f6] transition-colors"
+          className="flex items-center gap-1 text-[12px] font-semibold uppercase tracking-wider text-slate-600 hover:text-slate-900 transition-colors"
         >
-          <ArrowLeft size={13} /> Back to Projects
+          <ArrowLeft size={14} /> Registry
         </button>
+        <ChevronRight size={14} className="text-slate-300" />
+        <span className="text-[13px] font-bold uppercase tracking-wider text-slate-900">{project.project_id}</span>
       </div>
 
-      {/* Project Identity & Health Strip */}
-      <div className="bg-[#161922] border border-[#262a3a] rounded p-5">
-        <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5">
-          {/* Left: Info */}
-          <div className="space-y-1.5 min-w-0">
-            <div className="flex flex-wrap items-baseline gap-2.5">
-              <h2 className="text-base font-semibold text-[#eef0f6] tracking-tight">{project.project_name}</h2>
-              <span className="font-mono text-xs text-amber-500">{project.project_id}</span>
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-5">
+        
+        {/* LEFT: Project Identity & Actions (3/12) */}
+        <div className="xl:col-span-3 flex flex-col gap-6">
+          <div className="bg-white border border-slate-200 p-4">
+            <h2 className="text-[18px] font-bold text-slate-800 leading-snug mb-1">{project.project_name}</h2>
+            <div className="text-[12px] font-mono font-medium text-slate-500 mb-4">{project.project_id}</div>
+            
+            <div className="space-y-3 pt-4 border-t border-slate-100 text-[11px]">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Sector</span>
+                <span className="font-medium text-slate-800">{project.sector || 'Unspecified'}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Baseline</span>
+                <span className="font-mono font-bold text-slate-800">{formatINR(project.sanctioned_cost)}</span>
+              </div>
+              {project.ministry && (
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Ministry</span>
+                  <span className="font-medium text-slate-800 text-right max-w-[140px] truncate" title={project.ministry}>{project.ministry}</span>
+                </div>
+              )}
             </div>
-            <p className="text-xs text-[#6b7194] leading-relaxed">
-              {project.sector || 'Sector unspecified'} · Sanctioned Baseline: <strong className="font-mono text-[#eef0f6]">{formatINR(project.sanctioned_cost)}</strong>
-              {project.ministry && ` · Ministry: ${project.ministry}`}
-              {project.contractor && ` · Contractor: ${project.contractor}`}
-            </p>
           </div>
 
-          {/* Right: Model & Governance status */}
-          <div className="flex flex-wrap items-center gap-6 border-t lg:border-t-0 lg:border-l border-[#262a3a] pt-4 lg:pt-0 lg:pl-6 text-xs flex-shrink-0">
-            {/* Model Risk Card */}
-            <div className="space-y-0.5">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-[#6b7194]">
-                Model Calibrated Risk
-              </span>
-              <div className="flex items-baseline gap-2">
-                <span className="font-mono text-lg font-bold text-[#eef0f6]">
+          <div className="bg-white border border-slate-200 p-4 flex flex-col justify-between">
+            <div>
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Model Risk Tier</div>
+              <div className="flex items-baseline gap-2 mb-1">
+                <span className="font-mono text-[28px] font-bold text-slate-800">
                   {formatPercent(currentRisk, 2)}
                 </span>
-                <span className={`font-mono text-[11px] font-semibold px-1.5 py-0.5 rounded ${
-                  currentRisk >= 0.50
-                    ? 'text-red-400 bg-red-950/50 border border-red-800/40'
-                    : currentRisk >= 0.40
-                    ? 'text-amber-400 bg-amber-950/50 border border-amber-800/40'
-                    : 'text-emerald-400 bg-emerald-950/50 border border-emerald-800/40'
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded border uppercase ${
+                  currentRisk >= 0.50 ? 'text-red-600 bg-red-50 border-red-200' : currentRisk >= 0.40 ? 'text-amber-600 bg-amber-50 border-amber-200' : 'text-emerald-600 bg-emerald-50 border-emerald-200'
                 }`}>
                   {currentRiskTier}
                 </span>
               </div>
-              <p className="text-[10px] text-[#6b7194] font-mono">Trajectory: {trajectoryLabel}</p>
-            </div>
+              <div className="text-[12px] font-semibold uppercase tracking-widest text-slate-600 mb-4">
+                Trajectory: <span className={trajectoryLabel.includes('Deteriorating') ? 'text-orange-500' : 'text-slate-600'}>{trajectoryLabel}</span>
+              </div>
 
-            <div className="h-9 w-px bg-[#262a3a] hidden sm:block" />
-
-            {/* Governance Card */}
-            <div className="space-y-0.5">
-              <span className="text-[10px] font-mono uppercase tracking-wider text-[#6b7194]">
-                Governance State
-              </span>
-              <div>
+              <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 mt-4 pt-4 border-t border-slate-100">Governance State</div>
+              <div className="mb-2">
                 {isEscalated ? (
-                  <span className="font-mono text-xs font-semibold text-red-400 bg-red-950/50 px-2 py-0.5 rounded border border-red-800/40">
-                    AUTHORITY ESCALATION
-                  </span>
+                  <span className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-1 rounded block text-center">AUTHORITY ESCALATION</span>
                 ) : isRecovered ? (
-                  <span className="font-mono text-xs font-semibold text-emerald-400 bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-800/40">
-                    RECOVERED
-                  </span>
+                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded block text-center">RECOVERED</span>
                 ) : isUnderRecovery ? (
-                  <span className="font-mono text-xs font-semibold text-blue-400 bg-blue-950/50 px-2 py-0.5 rounded border border-blue-800/40">
-                    UNDER RECOVERY
-                  </span>
+                  <span className="text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-1 rounded block text-center">UNDER RECOVERY</span>
                 ) : hasWarning ? (
-                  <span className="font-mono text-xs font-semibold text-amber-400 bg-amber-950/50 px-2 py-0.5 rounded border border-amber-800/40">
-                    CONTRACTOR WARNING
-                  </span>
+                  <span className="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-1 rounded block text-center">CONTRACTOR WARNING</span>
                 ) : (
-                  <span className="font-mono text-xs font-medium text-[#c8ccd8] bg-[#1a1d2e] px-2 py-0.5 rounded border border-[#262a3a]">
-                    Active Surveillance
-                  </span>
+                  <span className="text-[10px] font-bold text-slate-500 bg-slate-50 border border-slate-200 px-2 py-1 rounded block text-center">ACTIVE SURVEILLANCE</span>
                 )}
               </div>
-              <p className="text-[10px] text-[#6b7194]">
-                {isEscalated
-                  ? 'Authority dossier issued'
-                  : hasWarning
-                  ? 'Contractor corrective-action window'
-                  : isRecovered
-                  ? 'Metrics verified below threshold'
-                  : 'Standard monthly reporting'}
-              </p>
             </div>
 
-            {/* Actions */}
             {isOperational && (
-              <div className="flex items-center gap-2">
+              <div className="pt-3 mt-2 space-y-2">
                 {canRespondToWarning && (
                   <button
-                    onClick={() => {
-                      setSelectedWarning(activeWarning);
-                      setShowResponseModal(true);
-                    }}
-                    className="px-3 py-1.5 text-xs font-medium bg-amber-600 hover:bg-amber-500 text-[#0f1117] rounded transition-colors"
+                    onClick={() => { setSelectedWarning(activeWarning); setShowResponseModal(true); }}
+                    className="w-full px-3 py-2 text-[12px] font-bold uppercase tracking-wider bg-orange-600 hover:bg-orange-500 text-white rounded transition-colors"
                   >
                     Log Response
                   </button>
                 )}
                 <button
                   onClick={() => setShowObservationModal(true)}
-                  className="px-3 py-1.5 text-xs font-medium bg-[#1a1d2e] hover:bg-[#252a42] border border-[#262a3a] text-[#eef0f6] rounded transition-colors flex items-center gap-1"
+                  className="w-full px-3 py-2 text-[12px] font-bold uppercase tracking-wider bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-700 rounded transition-colors flex items-center justify-center gap-1.5"
                 >
-                  <Plus size={12} /> Observation
+                  <Plus size={14} /> New Observation
                 </button>
               </div>
             )}
           </div>
         </div>
-      </div>
 
-      {/* Trajectory Time-Series Chart */}
-      <div className="bg-[#161922] border border-[#262a3a] rounded p-5 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#262a3a] pb-3">
-          <div>
-            <h3 className="text-xs font-mono uppercase tracking-wider text-[#eef0f6]">
-              Project Trajectory Over Time
-            </h3>
-            <p className="text-[11px] text-[#6b7194] mt-0.5">
-              Calibrated deterioration probability and reporting milestones across monthly observation cycles
-            </p>
+        {/* CENTER: Trajectory Chart (6/12) */}
+        <div className="xl:col-span-6 bg-white border border-slate-200 rounded-md shadow-sm p-5 h-auto flex flex-col">
+          <div className="flex flex-wrap items-center justify-between border-b border-slate-100 pb-3 mb-4">
+            <div>
+              <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">
+                Longitudinal Trajectory
+              </h3>
+              <p className="text-[10px] text-slate-400 mt-1">
+                Calibrated deterioration probability across reporting cycles
+              </p>
+            </div>
+            <div className="flex items-center gap-4 text-[10px] font-mono font-bold tracking-wide">
+              <span className="text-amber-500">WATCH (40)</span>
+              <span className="text-orange-500">REV (45)</span>
+              <span className="text-red-500">ESC (50)</span>
+            </div>
           </div>
 
-          <div className="flex items-center gap-4 text-[11px] font-mono">
-            <span className="flex items-center gap-1 text-[#eef0f6]">
-              <span className="w-2.5 h-0.5 bg-amber-500 inline-block" /> Risk %
-            </span>
-            <span className="text-amber-500">-- WATCH (40%)</span>
-            <span className="text-orange-500">-- REVIEW (45%)</span>
-            <span className="text-red-500">-- ESCALATE (50%)</span>
-          </div>
-        </div>
-
-        {/* Large Chart */}
-        <div className="h-72 w-full">
-          {chartData.length > 0 ? (
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: -10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e2235" vertical={false} />
-                <XAxis
-                  dataKey="month"
-                  tick={{ fontSize: 11, fill: '#6b7194' }}
-                  axisLine={{ stroke: '#262a3a' }}
-                />
-                <YAxis
-                  domain={[30, 75]}
-                  tick={{ fontSize: 11, fill: '#6b7194' }}
-                  tickFormatter={(v) => `${v}%`}
-                  axisLine={{ stroke: '#262a3a' }}
-                />
-                <Tooltip
-                  content={({ active, payload, label }) => {
-                    if (!active || !payload || !payload.length) return null;
-                    const d = payload[0].payload;
+          <div className="flex-1 min-h-[400px] w-full">
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={chartData} margin={{ top: 20, right: 30, left: -10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                  <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#64748b' }} axisLine={{ stroke: '#e2e8f0' }} tickLine={false} />
+                  <YAxis domain={[30, 75]} tick={{ fontSize: 10, fill: '#64748b' }} tickFormatter={(v) => `${v}`} axisLine={{ stroke: '#e2e8f0' }} tickLine={false} />
+                  <Tooltip
+                    content={({ active, payload, label }) => {
+                      if (!active || !payload || !payload.length) return null;
+                      const d = payload[0].payload;
+                      return (
+                        <div className="bg-white border border-slate-200 text-slate-700 p-3 rounded shadow-md text-[11px] font-mono space-y-1.5">
+                          <p className="font-bold text-slate-900 border-b border-slate-100 pb-1">{label}</p>
+                          <p>Risk: <strong className="text-orange-600">{d.risk}%</strong></p>
+                          {d.fin_progress !== null && <p>Fin Progress: {d.fin_progress}%</p>}
+                          {d.delay_months !== null && <p>Delay: {formatDelayMonths(d.delay_months)}</p>}
+                          {d.milestoneLabel && (
+                            <p className="text-red-600 font-bold border-t border-slate-100 pt-1 mt-1">
+                              {d.milestoneLabel}
+                            </p>
+                          )}
+                        </div>
+                      );
+                    }}
+                  />
+                  <ReferenceLine y={40} stroke="#d97706" strokeDasharray="3 3" />
+                  <ReferenceLine y={45} stroke="#ea580c" strokeDasharray="3 3" />
+                  <ReferenceLine y={50} stroke="#dc2626" strokeDasharray="3 3" />
+                  <Line type="monotone" dataKey="risk" stroke="#ea580c" strokeWidth={3}
+                    dot={(props) => {
+                      const { cx, cy, payload } = props;
+                      const isEsc = payload.milestoneLabel === 'Escalated' || (payload.risk && payload.risk >= 60);
+                      const isWarn = payload.milestoneLabel === 'Warning Issued';
+                      const fill = isEsc ? '#ef4444' : isWarn ? '#f59e0b' : '#ea580c';
+                      return (
+                        <circle key={props.key} cx={cx} cy={cy} r={payload.milestoneLabel ? 5 : 3.5} fill={fill} stroke="#ffffff" strokeWidth={2} />
+                      );
+                    }}
+                  />
+                  {chartData.map((pt) => {
+                    if (!pt.milestoneLabel) return null;
                     return (
-                      <div className="bg-[#0b0d14] border border-[#262a3a] text-[#c8ccd8] p-3 rounded text-xs font-mono space-y-1.5 shadow-xl">
-                        <p className="font-bold text-[#eef0f6] border-b border-[#1e2235] pb-1">{label}</p>
-                        <p>Calibrated Risk: <strong className="text-amber-400">{d.risk}%</strong></p>
-                        {d.fin_progress !== null && <p>Financial Progress: {d.fin_progress}%</p>}
-                        {d.delay_months !== null && <p>Schedule Delay: {formatDelayMonths(d.delay_months)}</p>}
-                        {d.milestoneLabel && (
-                          <p className="text-red-400 font-bold border-t border-[#1e2235] pt-1 mt-1">
-                            {d.milestoneLabel}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  }}
-                />
-
-                <ReferenceLine y={40} stroke="#d97706" strokeDasharray="3 3" />
-                <ReferenceLine y={45} stroke="#ea580c" strokeDasharray="3 3" />
-                <ReferenceLine y={50} stroke="#ef4444" strokeDasharray="3 3" />
-
-                <Line
-                  type="monotone"
-                  dataKey="risk"
-                  stroke="#d97706"
-                  strokeWidth={2.5}
-                  dot={(props) => {
-                    const { cx, cy, payload } = props;
-                    const isEsc = payload.milestoneLabel === 'Escalated' || (payload.risk && payload.risk >= 60);
-                    const isWarn = payload.milestoneLabel === 'Warning Issued';
-                    const fill = isEsc ? '#ef4444' : isWarn ? '#f59e0b' : '#d97706';
-                    return (
-                      <circle
-                        key={props.key}
-                        cx={cx}
-                        cy={cy}
-                        r={payload.milestoneLabel ? 6 : 3.5}
-                        fill={fill}
-                        stroke="#0f1117"
-                        strokeWidth={2}
+                      <ReferenceDot key={pt.month} x={pt.month} y={pt.risk} r={0}
+                        label={{
+                          value: pt.milestoneLabel,
+                          position: 'top',
+                          fill: pt.milestoneLabel === 'Escalated' ? '#ef4444' : '#64748b',
+                          fontSize: 10,
+                          fontWeight: 700,
+                          fontFamily: 'JetBrains Mono',
+                        }}
                       />
                     );
-                  }}
-                />
-
-                {chartData.map((pt) => {
-                  if (!pt.milestoneLabel) return null;
-                  return (
-                    <ReferenceDot
-                      key={pt.month}
-                      x={pt.month}
-                      y={pt.risk}
-                      r={0}
-                      label={{
-                        value: pt.milestoneLabel,
-                        position: 'top',
-                        fill: pt.milestoneLabel === 'Escalated' ? '#ef4444' : '#c8ccd8',
-                        fontSize: 10,
-                        fontWeight: 600,
-                      }}
-                    />
-                  );
-                })}
-              </ComposedChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="h-full flex items-center justify-center text-xs text-[#4a5070]">
-              No longitudinal observations recorded.
-            </div>
-          )}
+                  })}
+                </ComposedChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex items-center justify-center text-xs text-slate-400">No longitudinal observations recorded.</div>
+            )}
+          </div>
+          
+          <div className="pt-4 mt-4 border-t border-slate-100 flex flex-wrap items-center justify-between text-[10px] font-mono text-slate-500 tracking-wide bg-slate-50 p-2 rounded">
+            <span>Obs: <strong className="text-slate-800">{observations.length}</strong></span>
+            <span>Latest: <strong className="text-slate-800">{latestObs?.reporting_month || '—'}</strong></span>
+            <span>Delay: <strong className="text-slate-800">{formatDelayMonths(latestObs?.schedule_deviation_months)}</strong></span>
+            <span>Expenditure: <strong className="text-slate-800">{formatINR(latestObs?.cumulative_expenditure)}</strong></span>
+          </div>
         </div>
 
-        {/* Chart KPI Footer */}
-        <div className="pt-3 border-t border-[#262a3a] flex flex-wrap items-center gap-x-8 gap-y-1.5 text-xs text-[#6b7194] font-mono">
-          <span>Obs Count: <strong className="text-[#eef0f6]">{observations.length}</strong></span>
-          <span>Latest Month: <strong className="text-[#eef0f6]">{latestObs?.reporting_month || '—'}</strong></span>
-          <span>Sanction Delay: <strong className="text-[#eef0f6]">{formatDelayMonths(latestObs?.schedule_deviation_months)}</strong></span>
-          <span>Financial Spend: <strong className="text-[#eef0f6]">{formatINR(latestObs?.cumulative_expenditure)}</strong></span>
-        </div>
-      </div>
-
-      {/* Two Columns: Risk Drivers (TreeSHAP) & Governance Timeline */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Left: TreeSHAP */}
-        <div className="lg:col-span-6 bg-[#161922] border border-[#262a3a] rounded p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#262a3a] pb-3">
-            <h3 className="text-xs font-mono uppercase tracking-wider text-[#eef0f6]">
-              Evidence Contributing to Risk
-            </h3>
-            <span className="text-[10px] font-mono text-[#6b7194]">LightGBM TreeSHAP</span>
-          </div>
-
-          <div className="space-y-2 text-xs border-b border-[#262a3a] pb-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[#6b7194]">Schedule deviation</span>
-              <span className="font-mono font-bold text-[#eef0f6]">
-                {formatDelayMonths(latestObs?.schedule_deviation_months)}
-              </span>
+        {/* RIGHT: Risk Drivers & Governance Timeline (3/12) */}
+        <div className="xl:col-span-3 flex flex-col gap-6">
+          <div className="bg-white border border-slate-200 rounded-md shadow-sm p-4 flex flex-col h-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+              <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">
+                Risk Drivers
+              </h3>
+              <span className="text-[9px] font-bold font-mono text-slate-400 uppercase tracking-widest">TreeSHAP</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[#6b7194]">Financial velocity</span>
-              <span className={`font-mono font-bold ${trajectoryLabel.includes('Deteriorating') ? 'text-red-400' : 'text-[#eef0f6]'}`}>
-                {trajectoryLabel}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[#6b7194]">Trajectory risk tier</span>
-              <span className={`font-mono font-bold ${currentRiskTier === 'ESCALATE' ? 'text-red-400' : 'text-[#eef0f6]'}`}>
-                {currentRiskTier} ({formatPercent(currentRisk)})
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[#6b7194]">Baseline capital scale</span>
-              <span className="font-mono font-bold text-[#eef0f6]">
-                {formatINR(project.sanctioned_cost)}
-              </span>
-            </div>
-          </div>
-
-          <div>
-            <p className="text-[10px] font-mono uppercase text-[#6b7194] tracking-wider mb-2">
-              Primary Risk Attributions:
-            </p>
+            
             {riskDrivers.length > 0 ? (
               <div className="space-y-2">
                 {riskDrivers.map((driver, idx) => (
-                  <div key={idx} className="p-2.5 border border-[#1e2235] bg-[#0f1117] rounded text-xs flex items-center justify-between">
-                    <div>
-                      <div className="font-medium text-[#eef0f6]">
-                        {driver.explanation || driver.feature}
-                      </div>
-                      <div className="font-mono text-[10px] text-[#6b7194] mt-0.5">
-                        Feature: {driver.feature} · Observed: {String(driver.value)}
-                      </div>
+                  <div key={idx} className="p-2 border border-slate-100 bg-slate-50 rounded-md text-[11px] flex flex-col">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="font-semibold text-slate-800 leading-tight pr-2">{driver.explanation || driver.feature}</span>
+                      <span className="font-mono font-bold text-orange-600">
+                        {driver.contribution !== undefined ? `${driver.contribution >= 0 ? '+' : ''}${driver.contribution.toFixed(3)}` : ''}
+                      </span>
                     </div>
-                    <span className="font-mono text-xs font-bold text-amber-400 ml-3 whitespace-nowrap">
-                      {driver.contribution !== undefined ? `${driver.contribution >= 0 ? '+' : ''}${driver.contribution.toFixed(3)}` : ''}
-                    </span>
+                    <div className="text-[9px] font-mono text-slate-400">
+                      Val: {String(driver.value)}
+                    </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-[#4a5070]">No anomalous risk drivers flagged for this observation.</p>
+              <p className="text-[10px] text-slate-400 italic">No anomalous drivers flagged.</p>
             )}
           </div>
-        </div>
 
-        {/* Right: Governance Timeline */}
-        <div className="lg:col-span-6 bg-[#161922] border border-[#262a3a] rounded p-5 space-y-4">
-          <div className="flex items-center justify-between border-b border-[#262a3a] pb-3">
-            <h3 className="text-xs font-mono uppercase tracking-wider text-[#eef0f6]">
-              Governance Audit Ledger
-            </h3>
-            <span className="text-[10px] font-mono text-[#6b7194]">Audited Events</span>
-          </div>
+          {/* ASK VIGIL PANEL */}
+          <div className="bg-white border border-slate-200 rounded-md shadow-sm p-4 flex flex-col h-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+              <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-widest flex items-center gap-1.5">
+                <Sparkles size={12} className="text-violet-600" /> ASK VIGIL
+              </h3>
+              <span className="text-[9px] font-bold font-mono text-slate-400 uppercase tracking-widest">AI INTEL</span>
+            </div>
+            
+            {askVigilStatus === 'idle' && (
+              <div className="flex flex-col gap-3">
+                <p className="text-[10px] text-slate-500 mb-1 leading-relaxed">
+                  Ask about this project's trajectory and current status.
+                </p>
+                <div className="grid grid-cols-1 gap-2">
+                  {['Why was this project flagged?', 'What changed recently?', 'Has the project recovered?', 'Summarize the current situation.'].map(q => (
+                    <button 
+                      key={q}
+                      onClick={handleAskVigil}
+                      className="text-left text-[11px] px-3 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded text-slate-700 transition-colors flex items-center gap-2"
+                    >
+                      <MessageSquare size={10} className="text-violet-500" /> {q}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
 
-          <div className="divide-y divide-[#1e2235] text-xs font-mono max-h-72 overflow-y-auto">
-            {auditEvents.length > 0 ? (
-              auditEvents.map((evt, idx) => {
-                let parsed = {};
-                try {
-                  parsed = typeof evt.payload_json === 'string' ? JSON.parse(evt.payload_json) : evt.payload_json;
-                } catch {
-                  parsed = {};
-                }
+            {askVigilStatus === 'loading' && (
+              <div className="flex flex-col items-center justify-center py-8 text-slate-500 gap-2">
+                <div className="w-4 h-4 border-2 border-violet-400 border-t-transparent rounded-full animate-spin" />
+                <span className="text-[10px] font-medium uppercase tracking-widest text-violet-600 animate-pulse">Compiling Intelligence...</span>
+              </div>
+            )}
 
-                const isEsc = evt.event_type.includes('ESCALAT');
-                const isWarn = evt.event_type.includes('WARNING');
-                const isRec = evt.event_type.includes('RECOVERY');
-                const isResp = evt.event_type.includes('RESPONSE');
+            {askVigilStatus === 'error' && (
+              <div className="text-[10px] text-red-600 bg-red-50 p-3 rounded border border-red-200">
+                <div className="font-bold mb-1">Intelligence Assistant Unavailable</div>
+                <div>{askVigilError}</div>
+                <button onClick={() => setAskVigilStatus('idle')} className="mt-2 font-bold underline hover:text-red-700">Try Again</button>
+              </div>
+            )}
 
-                return (
-                  <div key={evt.event_id || idx} className="py-2.5 flex items-start gap-3">
-                    <span className="text-[#6b7194] text-[11px] whitespace-nowrap w-20 flex-shrink-0">
-                      {evt.timestamp}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            isEsc ? 'bg-red-500' : isWarn ? 'bg-amber-500' : isRec ? 'bg-emerald-500' : isResp ? 'bg-blue-500' : 'bg-[#6b7194]'
-                          }`}
-                        />
-                        <span className={`font-semibold text-xs ${isEsc ? 'text-red-400' : isWarn ? 'text-amber-400' : 'text-[#eef0f6]'}`}>
-                          {evt.event_type.replace(/_/g, ' ')}
-                        </span>
-                      </div>
-                      {parsed && (
-                        <p className="text-[11px] text-[#8e94ad] mt-1 font-sans line-clamp-2">
-                          {parsed.trigger_reason || parsed.reason || parsed.response_text || parsed.notes || JSON.stringify(parsed)}
-                        </p>
-                      )}
-                    </div>
+            {askVigilStatus === 'success' && askVigilData && (
+              <div className="flex flex-col gap-3 text-[11px]">
+                <div className="bg-violet-50 border border-violet-100 p-3 rounded">
+                  <p className="text-slate-800 leading-relaxed font-medium">{askVigilData.summary}</p>
+                </div>
+                
+                {askVigilData.key_findings && askVigilData.key_findings.length > 0 && (
+                  <div>
+                    <h4 className="font-bold text-slate-700 uppercase tracking-wider mb-1.5 text-[9px]">Key Findings</h4>
+                    <ul className="list-disc list-outside ml-3 text-slate-600 space-y-1">
+                      {askVigilData.key_findings.map((f, i) => <li key={i}>{f}</li>)}
+                    </ul>
                   </div>
-                );
-              })
-            ) : (
-              <div className="text-[#4a5070] py-6 text-center">No governance events recorded.</div>
+                )}
+
+                {askVigilData.evidence && askVigilData.evidence.length > 0 && (
+                  <div>
+                    <h4 className="font-bold text-slate-700 uppercase tracking-wider mb-1.5 text-[9px]">Observed Evidence</h4>
+                    <ul className="list-disc list-outside ml-3 text-slate-600 space-y-1">
+                      {askVigilData.evidence.map((f, i) => <li key={i}>{f}</li>)}
+                    </ul>
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-1 border-t border-slate-100 pt-3 mt-1">
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Governance:</span>
+                    <span className="font-bold text-slate-800">{askVigilData.governance_status}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Rec. Review:</span>
+                    <span className="font-bold text-slate-800 text-right max-w-[60%]">{askVigilData.recommended_review}</span>
+                  </div>
+                </div>
+
+                <div className="mt-2 pt-2 border-t border-slate-100 text-[9px] text-slate-400 italic text-center">
+                  Generated from verified VIGIL project data.
+                </div>
+              </div>
             )}
           </div>
+
+          <div className="bg-white border border-slate-200 rounded-md shadow-sm p-4 flex flex-col flex-1 min-h-[300px]">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+              <h3 className="text-[11px] font-bold text-slate-700 uppercase tracking-widest">
+                Audit Ledger
+              </h3>
+            </div>
+            
+            <div className="overflow-y-auto flex-1 pr-2">
+              <div className="space-y-4 relative before:absolute before:inset-0 before:ml-2 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-slate-200">
+                {auditEvents.length > 0 ? (
+                  auditEvents.map((evt, idx) => {
+                    let parsed = {};
+                    try { parsed = typeof evt.payload_json === 'string' ? JSON.parse(evt.payload_json) : evt.payload_json; } catch { parsed = {}; }
+                    
+                    const isEsc = evt.event_type.includes('ESCALAT');
+                    const isWarn = evt.event_type.includes('WARNING');
+                    const isRec = evt.event_type.includes('RECOVERY');
+                    const isResp = evt.event_type.includes('RESPONSE');
+                    
+                    return (
+                      <div key={evt.event_id || idx} className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+                        <div className={`flex items-center justify-center w-4 h-4 rounded-full border-2 border-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 ${
+                            isEsc ? 'bg-red-500' : isWarn ? 'bg-orange-500' : isRec ? 'bg-emerald-500' : isResp ? 'bg-blue-500' : 'bg-slate-400'
+                          }`}></div>
+                        <div className="w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] p-3 rounded border border-slate-200 bg-white shadow-sm">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className={`font-bold text-[10px] uppercase tracking-wider ${isEsc ? 'text-red-600' : isWarn ? 'text-orange-600' : 'text-slate-700'}`}>{evt.event_type.replace(/_/g, ' ')}</div>
+                            <time className="font-mono text-[9px] text-slate-400">{evt.timestamp}</time>
+                          </div>
+                          <div className="text-[10px] text-slate-500 leading-tight">
+                            {parsed.trigger_reason || parsed.reason || parsed.response_text || parsed.notes || 'Status updated.'}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="text-[10px] text-slate-400 py-6 text-center italic w-full">No governance events.</div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
+
       </div>
-
-      {/* Observations Log Table */}
-      <div className="bg-[#161922] border border-[#262a3a] rounded overflow-hidden">
-        <div className="px-5 py-3 border-b border-[#262a3a] bg-[#12141e] flex items-center justify-between">
-          <h3 className="text-xs font-mono uppercase tracking-wider text-[#eef0f6]">
-            Longitudinal Observations Log
-          </h3>
-          <span className="text-[10px] font-mono text-[#6b7194]">{observations.length} Cycles</span>
-        </div>
-
-        <div className="overflow-x-auto min-w-0">
-          <table className="w-full text-left text-[12px] border-collapse whitespace-nowrap">
-            <thead>
-              <tr className="border-b border-[#262a3a] text-[#6b7194] text-[11px] bg-[#12141e]">
-                <th className="px-4 py-2.5 font-medium">MONTH</th>
-                <th className="px-3 py-2.5 text-right font-medium">FIN. PROGRESS</th>
-                <th className="px-3 py-2.5 text-right font-medium">EXPENDITURE</th>
-                <th className="px-3 py-2.5 text-right font-medium">SCHEDULE DELAY</th>
-                <th className="px-3 py-2.5 text-right font-medium">RISK PROBABILITY</th>
-                <th className="px-4 py-2.5 font-medium">RISK TIER</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[#1e2235] font-mono text-[11px]">
-              {observations.map((obs, idx) => (
-                <tr key={idx} className="hover:bg-[#1a1d2e] transition-colors">
-                  <td className="px-4 py-2.5 font-bold text-[#eef0f6]">
-                    {obs.reporting_month}
-                  </td>
-                  <td className="px-3 py-2.5 text-right text-[#c8ccd8]">
-                    {obs.financial_progress !== null ? formatPercent(obs.financial_progress) : '—'}
-                  </td>
-                  <td className="px-3 py-2.5 text-right text-[#c8ccd8]">
-                    {obs.cumulative_expenditure !== null ? formatINR(obs.cumulative_expenditure) : '—'}
-                  </td>
-                  <td className="px-3 py-2.5 text-right text-[#c8ccd8]">
-                    {obs.schedule_deviation_months !== null ? formatDelayMonths(obs.schedule_deviation_months) : '—'}
-                  </td>
-                  <td className="px-3 py-2.5 text-right font-bold text-amber-400">
-                    {formatPercent(obs.pred_prob, 2)}
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <span className={`px-1.5 py-0.5 rounded text-[10px] ${
-                      obs.risk_tier === 'ESCALATE'
-                        ? 'text-red-400 bg-red-950/50 border border-red-800/40 font-bold'
-                        : obs.risk_tier === 'WATCH'
-                        ? 'text-amber-400 bg-amber-950/50 border border-amber-800/40 font-medium'
-                        : 'text-[#8e94ad] bg-[#0f1117] border border-[#262a3a]'
-                    }`}>
-                      {obs.risk_tier}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Observation Modal */}
-      <ObservationModal
-        isOpen={showObservationModal}
-        onClose={() => setShowObservationModal(false)}
-        projectId={project.project_id}
-        projectName={project.project_name}
-        latestMonth={latestObs?.reporting_month || project.initial_reporting_month}
-        onSuccess={fetchProjectData}
-      />
-
-      {/* Contractor Response Modal */}
-      <WarningResponseModal
-        isOpen={showResponseModal}
-        onClose={() => setShowResponseModal(false)}
-        projectId={project.project_id}
-        warning={selectedWarning}
-        onSuccess={fetchProjectData}
-      />
     </div>
   );
 }

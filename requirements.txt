@@ -5,9 +5,9 @@ et_xmlfile==2.0.0
 numpy==2.5.2
 openpyxl==3.1.5
 pandas==3.0.5
-pdfminer.six==20260107
-pdfplumber==0.11.10
-pillow==12.3.0
+pdfminer.six
+pdfplumber
+pillow>=10.0.0
 pycparser==3.0
 pymupdf==1.28.2
 pypdfium2==5.13.0
@@ -22,3 +22,5 @@ scikit-learn==1.9.0
 fastapi==0.141.1
 uvicorn==0.52.4
 httpx==0.28.1
+google-genai==0.3.0
+python-dotenv==1.0.1

@@ -44,16 +44,16 @@ function ToastItem({ toast, onClose }) {
   };
 
   const borders = {
-    success: 'border-emerald-800/60 bg-[#121f19]',
-    error: 'border-red-800/60 bg-[#241316]',
-    info: 'border-amber-800/60 bg-[#211a14]'
+    success: 'border-emerald-200 bg-white text-slate-700',
+    error: 'border-red-200 bg-white text-slate-700',
+    info: 'border-amber-200 bg-white text-slate-700'
   };
 
   return (
-    <div className={`flex items-center gap-3 px-4 py-3 rounded-lg border shadow-2xl min-w-[280px] max-w-[400px] text-xs text-[#eef0f6] font-sans ${borders[toast.type] || borders.info}`}>
+    <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl border shadow-[0_18px_50px_rgba(15,23,42,0.12)] min-w-[280px] max-w-[400px] text-xs ${borders[toast.type] || borders.info}`}>
       {icons[toast.type] || icons.info}
       <span className="flex-1 leading-snug">{toast.message}</span>
-      <button onClick={onClose} className="text-[#6b7194] hover:text-[#eef0f6] transition-colors p-0.5">
+      <button onClick={onClose} className="text-slate-400 hover:text-slate-700 transition-colors p-0.5">
         <X size={13} />
       </button>
     </div>

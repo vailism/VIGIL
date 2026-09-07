@@ -6,7 +6,7 @@ import {
   formatPercent
 } from '../services/api';
 import WarningResponseModal from '../components/modals/WarningResponseModal';
-import { AlertTriangle, Search, Filter } from 'lucide-react';
+import { Search } from 'lucide-react';
 
 export default function Warnings() {
   const navigate = useNavigate();
@@ -75,45 +75,48 @@ export default function Warnings() {
   });
 
   return (
-    <div className="p-6 space-y-5 min-w-0">
+    <div className="p-6 h-full flex flex-col min-w-0">
+      
       {/* Header Info */}
-      <div className="p-4 bg-[#161922] border border-[#262a3a] rounded text-[12px] text-[#6b7194] flex items-center justify-between">
-        <div>
-          <span className="font-medium text-[#eef0f6]">Notice Trigger Rule: </span>
-          Early-warning notices automatically dispatched when project risk reaches or exceeds the 50% deterioration threshold.
-        </div>
+      <div className="mb-5 shrink-0 flex items-center justify-between">
+        <h1 className="text-xl font-bold text-slate-900 tracking-tight">Contractor Warnings</h1>
+      </div>
+
+      <div className="p-4 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-600 mb-5 shrink-0">
+        <span className="font-bold text-slate-900 uppercase tracking-widest mr-2">Notice Trigger Rule:</span>
+        Early-warning notices automatically dispatched when project risk reaches or exceeds the 50% deterioration threshold.
       </div>
 
       {/* KPI stats strip */}
-      <div className="bg-[#161922] border border-[#262a3a] rounded px-5 py-3.5 flex items-center justify-between text-xs divide-x divide-[#262a3a]">
+      <div className="bg-white border border-slate-200 rounded-md shadow-sm px-6 py-4 flex items-center justify-between text-xs divide-x divide-slate-100 mb-5 shrink-0">
         <div className="flex-1 flex items-baseline gap-2.5">
-          <span className="text-[11px] text-[#6b7194] uppercase tracking-wider font-medium">Active Notices</span>
-          <span className="font-mono font-bold text-amber-500 text-base">{activeCount}</span>
+          <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Active Notices</span>
+          <span className="font-mono font-bold text-orange-600 text-lg">{activeCount}</span>
         </div>
         <div className="flex-1 pl-6 flex items-baseline gap-2.5">
-          <span className="text-[11px] text-[#6b7194] uppercase tracking-wider font-medium">Under Recovery</span>
-          <span className="font-mono font-bold text-blue-400 text-base">{underRecoveryCount}</span>
+          <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Under Recovery</span>
+          <span className="font-mono font-bold text-blue-600 text-lg">{underRecoveryCount}</span>
         </div>
         <div className="flex-1 pl-6 flex items-baseline gap-2.5">
-          <span className="text-[11px] text-[#6b7194] uppercase tracking-wider font-medium">Recovered</span>
-          <span className="font-mono font-bold text-emerald-400 text-base">{recoveredCount}</span>
+          <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Recovered</span>
+          <span className="font-mono font-bold text-emerald-600 text-lg">{recoveredCount}</span>
         </div>
         <div className="flex-1 pl-6 flex items-baseline gap-2.5">
-          <span className="text-[11px] text-[#6b7194] uppercase tracking-wider font-medium">Persistent Deterioration</span>
-          <span className="font-mono font-bold text-red-500 text-base">{persistentCount}</span>
+          <span className="text-[10px] text-slate-500 uppercase tracking-wider font-bold">Persistent Deterioration</span>
+          <span className="font-mono font-bold text-red-600 text-lg">{persistentCount}</span>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-[#161922] border border-[#262a3a] rounded p-3 flex flex-wrap items-center justify-between gap-3 text-xs">
-        <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[#4a5070]" size={13} />
+      <div className="bg-white border border-slate-200 rounded-md shadow-sm p-4 flex flex-wrap items-center justify-between gap-3 mb-5 shrink-0">
+        <div className="relative w-72">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
           <input
             type="text"
             placeholder="Filter warnings by project or ID..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-8 pr-3 py-1.5 bg-[#0f1117] border border-[#262a3a] text-[#c8ccd8] rounded text-xs w-72 focus:outline-none focus:border-amber-600/50 placeholder:text-[#4a5070]"
+            className="w-full pl-9 pr-3 py-2 bg-white border border-slate-200 text-slate-800 rounded text-[11px] font-medium shadow-sm focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 transition-all placeholder:text-slate-400"
           />
         </div>
 
@@ -122,10 +125,10 @@ export default function Warnings() {
             <button
               key={st}
               onClick={() => setFilterStatus(st)}
-              className={`px-2.5 py-1 rounded text-[11px] font-medium transition-colors ${
+              className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider transition-colors border ${
                 filterStatus === st
-                  ? 'bg-amber-600/20 text-amber-400 border border-amber-600/40'
-                  : 'bg-[#0f1117] text-[#6b7194] border border-[#262a3a] hover:text-[#a0a5bd] hover:bg-[#1a1d2e]'
+                  ? 'bg-slate-900 text-white border-slate-900'
+                  : 'bg-white text-slate-500 border-slate-200 hover:text-slate-700 hover:bg-slate-50'
               }`}
             >
               {st.replace('_', ' ')}
@@ -135,109 +138,115 @@ export default function Warnings() {
       </div>
 
       {/* Warnings Table */}
-      <div className="bg-[#161922] border border-[#262a3a] rounded overflow-x-auto min-w-0">
-        <table className="w-full text-left text-[12px] border-collapse whitespace-nowrap">
-          <thead>
-            <tr className="border-b border-[#262a3a] text-[#6b7194] text-[11px] bg-[#12141e]">
-              <th className="px-4 py-2.5 font-medium">PROJECT</th>
-              <th className="px-3 py-2.5 text-right font-medium">RISK AT WARNING</th>
-              <th className="px-3 py-2.5 font-medium">MONTH</th>
-              <th className="px-3 py-2.5 font-medium">TRIGGER REASON</th>
-              <th className="px-3 py-2.5 font-medium">CONTRACTOR STATUS</th>
-              <th className="px-3 py-2.5 font-medium">RECOVERY STATE</th>
-              <th className="px-3 py-2.5 text-center font-medium">CYCLES</th>
-              <th className="px-4 py-2.5 text-right font-medium">ACTION</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-[#1e2235]">
-            {loading ? (
-              <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-[#4a5070]">
-                  Loading warning notices...
-                </td>
+      <div className="bg-white border border-slate-200 rounded-md shadow-sm overflow-hidden flex-1 flex flex-col min-h-0">
+        <div className="overflow-auto flex-1">
+          <table className="w-full text-left text-[11px] border-collapse whitespace-nowrap">
+            <thead className="bg-slate-50 sticky top-0 z-10 border-b border-slate-200">
+              <tr className="text-slate-500 font-bold uppercase tracking-wider">
+                <th className="px-4 py-3">PROJECT</th>
+                <th className="px-3 py-3 text-right">RISK AT WARNING</th>
+                <th className="px-3 py-3">MONTH</th>
+                <th className="px-3 py-3">TRIGGER REASON</th>
+                <th className="px-3 py-3 text-center">CONTRACTOR STATUS</th>
+                <th className="px-3 py-3 text-center">RECOVERY STATE</th>
+                <th className="px-3 py-3 text-center">CYCLES</th>
+                <th className="px-4 py-3 text-right">ACTION</th>
               </tr>
-            ) : filtered.length === 0 ? (
-              <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-[#4a5070]">
-                  No contractor warnings matching filters.
-                </td>
-              </tr>
-            ) : (
-              filtered.map((w) => (
-                <tr key={w.warning_id} className="hover:bg-[#1a1d2e] transition-colors">
-                  <td className="px-4 py-2.5 max-w-[220px]">
-                    <div className="font-medium text-[#eef0f6] truncate" title={w.project_name}>
-                      {w.project_name}
-                    </div>
-                    <div className="font-mono text-[10px] text-[#6b7194] truncate">
-                      {w.project_id} · <span className="text-[#4a5070]">{w.warning_id}</span>
-                    </div>
-                  </td>
-
-                  <td className="px-3 py-2.5 text-right font-mono font-bold text-red-400">
-                    {formatPercent(w.pred_prob, 2)}
-                  </td>
-
-                  <td className="px-3 py-2.5 font-mono text-[#a0a5bd]">
-                    {w.reporting_month}
-                  </td>
-
-                  <td className="px-3 py-2.5 max-w-[260px] text-[#6b7194] truncate" title={w.trigger_reason}>
-                    {w.trigger_reason}
-                  </td>
-
-                  <td className="px-3 py-2.5">
-                    {w.status === 'ISSUED' ? (
-                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono bg-amber-950/60 border border-amber-800/60 text-amber-300">
-                        Response requested
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-mono bg-blue-950/60 border border-blue-800/60 text-blue-300">
-                        Response submitted
-                      </span>
-                    )}
-                  </td>
-
-                  <td className="px-3 py-2.5 text-[11px]">
-                    <span className={`font-mono text-[10px] px-1.5 py-0.5 rounded ${
-                      w.current_project_status === 'RECOVERED'
-                        ? 'bg-emerald-950/50 text-emerald-400 border border-emerald-800/40'
-                        : w.current_project_status === 'ESCALATED'
-                        ? 'bg-red-950/50 text-red-400 border border-red-800/40'
-                        : 'bg-[#1a1d2e] text-[#c8ccd8] border border-[#262a3a]'
-                    }`}>
-                      {w.current_project_status.replace(/_/g, ' ')}
-                    </span>
-                  </td>
-
-                  <td className="px-3 py-2.5 text-center font-mono font-medium text-[#eef0f6]">
-                    {w.warning_consecutive_count}
-                  </td>
-
-                  <td className="px-4 py-2.5 text-right space-x-2">
-                    {w.status === 'ISSUED' && (
-                      <button
-                        onClick={() => {
-                          setActiveWarningItem(w);
-                          setShowResponseModal(true);
-                        }}
-                        className="text-[11px] font-medium text-amber-400 hover:text-amber-300 transition-colors"
-                      >
-                        Log Response
-                      </button>
-                    )}
-                    <button
-                      onClick={() => navigate(`/projects/${encodeURIComponent(w.project_id)}`)}
-                      className="text-[11px] font-medium text-[#c8ccd8] hover:text-[#ffffff] transition-colors"
-                    >
-                      View →
-                    </button>
+            </thead>
+            <tbody className="divide-y divide-slate-100 font-medium">
+              {loading ? (
+                <tr>
+                  <td colSpan={8} className="px-4 py-12 text-center text-slate-400 italic">
+                    Loading warning notices...
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-4 py-12 text-center text-slate-400 italic">
+                    No contractor warnings matching filters.
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((w) => (
+                  <tr key={w.warning_id} className="hover:bg-slate-50 cursor-pointer transition-colors" onClick={() => navigate(`/projects/${encodeURIComponent(w.project_id)}`)}>
+                    <td className="px-4 py-3 max-w-[220px]">
+                      <div className="font-bold text-slate-900 truncate leading-tight" title={w.project_name}>
+                        {w.project_name}
+                      </div>
+                      <div className="font-mono text-[10px] text-slate-500 truncate mt-0.5">
+                        {w.project_id} · <span className="text-slate-400">{w.warning_id}</span>
+                      </div>
+                    </td>
+
+                    <td className="px-3 py-3 text-right font-mono font-bold text-red-600">
+                      {formatPercent(w.pred_prob, 2)}
+                    </td>
+
+                    <td className="px-3 py-3 font-mono text-slate-500">
+                      {w.reporting_month}
+                    </td>
+
+                    <td className="px-3 py-3 max-w-[260px] text-slate-600 truncate" title={w.trigger_reason}>
+                      {w.trigger_reason}
+                    </td>
+
+                    <td className="px-3 py-3 text-center">
+                      {w.status === 'ISSUED' ? (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest bg-orange-50 border border-orange-200 text-orange-700">
+                          Response requested
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest bg-blue-50 border border-blue-200 text-blue-700">
+                          Response submitted
+                        </span>
+                      )}
+                    </td>
+
+                    <td className="px-3 py-3 text-center">
+                      <span className={`inline-block px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-widest border ${
+                        w.current_project_status === 'RECOVERED'
+                          ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                          : w.current_project_status === 'ESCALATED'
+                          ? 'bg-red-50 text-red-700 border-red-200'
+                          : 'bg-slate-50 text-slate-600 border-slate-200'
+                      }`}>
+                        {(w.current_project_status || w.status || 'ACTIVE').replace(/_/g, ' ')}
+                      </span>
+                    </td>
+
+                    <td className="px-3 py-3 text-center font-mono font-bold text-slate-700">
+                      {w.warning_consecutive_count}
+                    </td>
+
+                    <td className="px-4 py-3 text-right space-x-3">
+                      {w.status === 'ISSUED' && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveWarningItem(w);
+                            setShowResponseModal(true);
+                          }}
+                          className="text-[10px] font-bold uppercase tracking-wider text-orange-600 hover:text-orange-500 transition-colors"
+                        >
+                          Log Response
+                        </button>
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/projects/${encodeURIComponent(w.project_id)}`);
+                        }}
+                        className="text-[10px] font-bold uppercase tracking-wider text-slate-400 hover:text-slate-600 transition-colors"
+                      >
+                        View →
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {activeWarningItem && (
