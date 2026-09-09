@@ -1,3 +1,4 @@
+
 # VIGIL
 ## Infrastructure Early-Warning & Project Trajectory Intelligence System
 
@@ -743,3 +744,149 @@ The objective is not simply to identify failed projects. The objective is to ide
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
+---
+
+# 25. SANKET — Infrastructure Risk Admin Dashboard
+
+A production-quality command-center dashboard for government infrastructure risk monitoring and intelligence. Built with vanilla HTML, CSS, and JavaScript.
+
+![Status](https://img.shields.io/badge/status-operational-10b981)
+![Security](https://img.shields.io/badge/security-TLS%201.3-06b6d4)
+![Clearance](https://img.shields.io/badge/clearance-TIER--1-ef4444)
+
+## Features
+
+- **Portfolio Vital Metrics** — Total monitored projects, high-risk excursions, value-at-risk, warning lead times
+- **Ongoing Projects** — Filterable, scored project cards with severity indicators
+- **Trajectory Divergence Model** — SVG line chart with anomaly markers, discrepancy annotations, and deviation envelopes
+- **Execution Disparity** — Radial score, physical vs. financial progress spread, quarterly bar chart
+- **Sensor Array Status** — Live sensor meters (RTK, InSAR, LiDAR, Strain)
+- **AI Analyst Assistant** — Chat panel powered by Google Gemini for data-driven risk analysis
+- **Responsive Design** — Desktop-first with tablet and mobile breakpoints
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | HTML5, CSS3, Vanilla JavaScript |
+| Typography | Inter + JetBrains Mono (Google Fonts) |
+| Charts | Custom SVG rendering |
+| Backend | Node.js + Express |
+| AI | Google Gemini API (`@google/generative-ai`) |
+
+## Quick Start
+
+### Prerequisites
+
+- **Node.js** ≥ 18
+- A [Google Gemini API key](https://aistudio.google.com/app/apikey) (optional — dashboard works without it)
+
+### Installation
+
+```bash
+# Clone and install
+cd frontend
+npm install
+
+# Configure environment (optional, for AI assistant)
+cp .env.example .env
+# Edit .env and add your Gemini API key
+```
+
+### Running
+
+```bash
+npm start
+# → Server runs at http://localhost:3001
+```
+
+Open [http://localhost:3001](http://localhost:3001) in your browser.
+
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `GEMINI_API_KEY` | No | Google Gemini API key for the AI assistant |
+| `PORT` | No | Server port (default: `3001`) |
+
+> **Security**: The API key is read server-side only. It is never exposed to the frontend. The `.env` file is git-ignored.
+
+## Project Structure
+
+```
+frontend/
+├── server.js              # Express server + Gemini API route
+├── package.json
+├── .env.example           # Environment template
+├── .gitignore
+├── README.md
+└── public/
+    ├── index.html         # Main dashboard HTML
+    ├── css/
+    │   └── styles.css     # Complete stylesheet (tokens, layout, components)
+    └── js/
+        ├── data.js        # Mock dashboard data
+        ├── charts.js      # SVG sparkline + trajectory chart renderer
+        ├── assistant.js   # AI assistant (panel, API, persistence)
+        └── app.js         # Main controller (init, events, interactions)
+```
+
+## Gemini AI Assistant
+
+The AI assistant is accessible via the floating cyan button in the lower-right corner. It connects to the Gemini API through `POST /api/assistant`.
+
+### How it works
+
+1. Frontend sends the user message + a dashboard context snapshot
+2. Express server forwards to Gemini with a system prompt instructing it to be a concise infrastructure-risk analyst
+3. Response is displayed in the chat panel with citation formatting
+
+### Configuration
+
+1. Get an API key from [Google AI Studio](https://aistudio.google.com/app/apikey)
+2. Copy `.env.example` to `.env`
+3. Replace `your_gemini_api_key_here` with your actual key
+4. Restart the server
+
+### Without a key
+
+The dashboard is fully functional without an API key. The AI assistant will show a friendly offline message.
+
+## API Reference
+
+### `POST /api/assistant`
+
+**Request body:**
+```json
+{
+  "message": "Why is NH-44 flagged critical?",
+  "context": { /* dashboard snapshot */ }
+}
+```
+
+**Success response (200):**
+```json
+{
+  "reply": "NH-44 Package 3B is flagged critical with a score of 92/100 due to..."
+}
+```
+
+**Error responses:**
+- `400` — Missing or invalid message
+- `429` — Rate limit exceeded
+- `500` — Gemini API error
+- `503` — API key not configured
+
+## Responsive Breakpoints
+
+| Breakpoint | Layout |
+|------------|--------|
+| > 1280px | Full 3-column grid |
+| 1024–1280px | Compact 3-column |
+| 768–1024px | 2-column + stacked detail |
+| < 768px | Single column |
+
+## License
+
+This project is provided for demonstration purposes.
+
