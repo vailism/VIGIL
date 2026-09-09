@@ -17,6 +17,7 @@ import numpy as np
 import pandas as pd
 
 from sanket.inference import load_inference_engine, predict_point_in_time
+from sanket.storage import get_artifact
 
 def ym_to_int(ym: Any) -> Optional[int]:
     if not isinstance(ym, str) or not ym or ym == "nan":
@@ -206,12 +207,13 @@ def get_project_replay(
     Retrieve and reconstruct historical point-in-time replay for a specific project_id.
     Fails cleanly with ValueError if project is unknown.
     """
-    if not os.path.exists(dataset_path):
-        raise FileNotFoundError(f"Dataset '{dataset_path}' not found.")
+    actual_path = get_artifact(dataset_path)
+    if not os.path.exists(actual_path):
+        raise FileNotFoundError(f"Dataset '{actual_path}' not found.")
 
     # Read project observations
     p_df = pd.read_parquet(
-        dataset_path,
+        actual_path,
         filters=[("project_id", "==", str(project_id))]
     )
 

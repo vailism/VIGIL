@@ -76,9 +76,6 @@ def get_app_context(dataset_path: str = "DATA/model_dataset.parquet") -> Dict[st
     if _APP_CONTEXT is not None:
         return _APP_CONTEXT
 
-    if not os.path.exists(dataset_path):
-        raise FileNotFoundError(f"Longitudinal dataset '{dataset_path}' not found.")
-
     portfolio = get_portfolio(dataset_path=dataset_path)
 
     _APP_CONTEXT = {

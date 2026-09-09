@@ -2,6 +2,10 @@
   "version": 2,
   "rewrites": [
     {
+      "source": "/health",
+      "destination": "https://vigil-kou0.onrender.com/health"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://vigil-kou0.onrender.com/api/:path*"
     }

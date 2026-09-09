@@ -28,6 +28,7 @@ import numpy as np
 import pandas as pd
 
 from sanket.inference import load_inference_engine, get_risk_tier
+from sanket.storage import get_artifact
 
 # Indian States and Union Territories for state-level aggregate detection
 INDIAN_STATES = {
@@ -177,8 +178,11 @@ class SanitizedPortfolio:
         self._load_and_sanitize()
 
     def _load_and_sanitize(self):
-        if not os.path.exists(self.dataset_path):
-            raise FileNotFoundError(f"Dataset '{self.dataset_path}' does not exist.")
+        actual_dataset_path = get_artifact(self.dataset_path)
+        actual_lead_time_path = get_artifact(self.lead_time_path)
+        
+        if not os.path.exists(actual_dataset_path):
+            raise FileNotFoundError(f"Dataset '{actual_dataset_path}' does not exist.")
 
         engine = load_inference_engine()
         self.engine = engine
@@ -192,10 +196,10 @@ class SanitizedPortfolio:
         ]))
 
         import pyarrow.parquet as pq
-        schema = pq.read_schema(self.dataset_path)
+        schema = pq.read_schema(actual_dataset_path)
         actual_cols = [c for c in cols if c in schema.names]
 
-        df_full = pd.read_parquet(self.dataset_path, columns=actual_cols)
+        df_full = pd.read_parquet(actual_dataset_path, columns=actual_cols)
 
         # Total extracted identities across longitudinal archive
         self.total_archive_entities = int(df_full["project_id"].nunique())
@@ -277,9 +281,9 @@ class SanitizedPortfolio:
 
         # Historical median lead time benchmark
         self.historical_median_warning_lead = 3.0
-        if os.path.exists(self.lead_time_path):
+        if os.path.exists(actual_lead_time_path):
             try:
-                df_lt = pd.read_parquet(self.lead_time_path)
+                df_lt = pd.read_parquet(actual_lead_time_path)
                 if "event_lead_time" in df_lt.columns:
                     self.historical_median_warning_lead = float(df_lt["event_lead_time"].median())
             except Exception:

@@ -24,6 +24,7 @@ import os
 import json
 import uuid
 import sqlite3
+from sanket.db import get_db, POSTGRES_POOL
 from datetime import datetime, date, timezone
 from typing import Dict, List, Any, Optional, Tuple, Union
 import numpy as np
@@ -67,145 +68,263 @@ def get_db_connection(db_path: Optional[str] = None) -> sqlite3.Connection:
 
 def init_db(db_path: Optional[str] = None) -> None:
     """Initialize database tables for operational monitoring."""
-    conn = get_db_connection(db_path)
-    try:
+    with get_db(db_path) as conn:
         with conn:
-            # 1. Monitored Projects
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS monitored_projects (
-                    project_id TEXT PRIMARY KEY,
-                    project_name TEXT NOT NULL,
-                    sector TEXT NOT NULL,
-                    ministry TEXT,
-                    state TEXT,
-                    approved_cost REAL NOT NULL,
-                    revised_cost REAL,
-                    planned_start_date TEXT,
-                    planned_completion_date TEXT,
-                    contractor TEXT,
-                    initial_reporting_month TEXT NOT NULL,
-                    status TEXT NOT NULL DEFAULT 'ACTIVE',
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
-                )
-            """)
+            if POSTGRES_POOL is not None:
+                # Postgres Schema
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS monitored_projects (
+                        project_id TEXT PRIMARY KEY,
+                        project_name TEXT NOT NULL,
+                        sector TEXT NOT NULL,
+                        ministry TEXT,
+                        state TEXT,
+                        approved_cost DOUBLE PRECISION NOT NULL,
+                        revised_cost DOUBLE PRECISION,
+                        planned_start_date TEXT,
+                        planned_completion_date TEXT,
+                        contractor TEXT,
+                        initial_reporting_month TEXT NOT NULL,
+                        status TEXT NOT NULL DEFAULT 'ACTIVE',
+                        created_at TEXT NOT NULL,
+                        updated_at TEXT NOT NULL
+                    )
+                """)
 
-            # 2. Monthly Observations
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS monthly_observations (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    project_id TEXT NOT NULL,
-                    reporting_month TEXT NOT NULL,
-                    observation_number INTEGER NOT NULL,
-                    financial_progress REAL,
-                    physical_progress REAL,
-                    expenditure REAL,
-                    revised_cost REAL,
-                    completion_date TEXT,
-                    schedule_deviation_months REAL,
-                    milestone_status TEXT,
-                    milestone_slippage REAL,
-                    notes TEXT,
-                    supporting_documents TEXT,
-                    raw_prob REAL,
-                    calibrated_prob REAL,
-                    risk_tier TEXT,
-                    alert INTEGER,
-                    trajectory_status TEXT,
-                    history_confidence TEXT,
-                    trajectory_history_months INTEGER,
-                    top_explanations TEXT,
-                    features_snapshot TEXT,
-                    submitted_at TEXT NOT NULL,
-                    FOREIGN KEY (project_id) REFERENCES monitored_projects(project_id) ON DELETE CASCADE,
-                    UNIQUE (project_id, reporting_month)
-                )
-            """)
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS monthly_observations (
+                        id SERIAL PRIMARY KEY,
+                        project_id TEXT NOT NULL,
+                        reporting_month TEXT NOT NULL,
+                        observation_number INTEGER NOT NULL,
+                        financial_progress DOUBLE PRECISION,
+                        physical_progress DOUBLE PRECISION,
+                        expenditure DOUBLE PRECISION,
+                        revised_cost DOUBLE PRECISION,
+                        completion_date TEXT,
+                        schedule_deviation_months DOUBLE PRECISION,
+                        milestone_status TEXT,
+                        milestone_slippage DOUBLE PRECISION,
+                        notes TEXT,
+                        supporting_documents TEXT,
+                        raw_prob DOUBLE PRECISION,
+                        calibrated_prob DOUBLE PRECISION,
+                        risk_tier TEXT,
+                        alert INTEGER,
+                        trajectory_status TEXT,
+                        history_confidence TEXT,
+                        trajectory_history_months INTEGER,
+                        top_explanations TEXT,
+                        features_snapshot TEXT,
+                        submitted_at TEXT NOT NULL,
+                        FOREIGN KEY (project_id) REFERENCES monitored_projects(project_id) ON DELETE CASCADE,
+                        UNIQUE (project_id, reporting_month)
+                    )
+                """)
 
-            # 3. Contractor Warnings
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS contractor_warnings (
-                    warning_id TEXT PRIMARY KEY,
-                    project_id TEXT NOT NULL,
-                    issued_at TEXT NOT NULL,
-                    reporting_month TEXT NOT NULL,
-                    risk_probability REAL NOT NULL,
-                    risk_tier TEXT NOT NULL,
-                    warning_reason TEXT NOT NULL,
-                    deterministic_evidence TEXT,
-                    observed_trajectory TEXT,
-                    required_response TEXT NOT NULL,
-                    response_deadline TEXT NOT NULL,
-                    status TEXT NOT NULL,
-                    FOREIGN KEY (project_id) REFERENCES monitored_projects(project_id) ON DELETE CASCADE
-                )
-            """)
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS contractor_warnings (
+                        warning_id TEXT PRIMARY KEY,
+                        project_id TEXT NOT NULL,
+                        issued_at TEXT NOT NULL,
+                        reporting_month TEXT NOT NULL,
+                        risk_probability DOUBLE PRECISION NOT NULL,
+                        risk_tier TEXT NOT NULL,
+                        warning_reason TEXT NOT NULL,
+                        deterministic_evidence TEXT,
+                        observed_trajectory TEXT,
+                        required_response TEXT NOT NULL,
+                        response_deadline TEXT NOT NULL,
+                        status TEXT NOT NULL,
+                        FOREIGN KEY (project_id) REFERENCES monitored_projects(project_id) ON DELETE CASCADE
+                    )
+                """)
 
-            # 4. Contractor Responses
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS contractor_responses (
-                    response_id TEXT PRIMARY KEY,
-                    warning_id TEXT NOT NULL,
-                    project_id TEXT NOT NULL,
-                    acknowledged INTEGER NOT NULL,
-                    response_text TEXT NOT NULL,
-                    corrective_action TEXT NOT NULL,
-                    expected_recovery_date TEXT,
-                    responsible_person TEXT,
-                    supporting_documents TEXT,
-                    submitted_at TEXT NOT NULL,
-                    FOREIGN KEY (warning_id) REFERENCES contractor_warnings(warning_id) ON DELETE CASCADE,
-                    FOREIGN KEY (project_id) REFERENCES monitored_projects(project_id) ON DELETE CASCADE
-                )
-            """)
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS contractor_responses (
+                        response_id TEXT PRIMARY KEY,
+                        warning_id TEXT NOT NULL,
+                        project_id TEXT NOT NULL,
+                        acknowledged INTEGER NOT NULL,
+                        response_text TEXT NOT NULL,
+                        corrective_action TEXT NOT NULL,
+                        expected_recovery_date TEXT,
+                        responsible_person TEXT,
+                        supporting_documents TEXT,
+                        submitted_at TEXT NOT NULL,
+                        FOREIGN KEY (warning_id) REFERENCES contractor_warnings(warning_id) ON DELETE CASCADE,
+                        FOREIGN KEY (project_id) REFERENCES monitored_projects(project_id) ON DELETE CASCADE
+                    )
+                """)
 
-            # 5. Authority Escalations
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS authority_escalations (
-                    escalation_id TEXT PRIMARY KEY,
-                    project_id TEXT NOT NULL,
-                    warning_id TEXT NOT NULL,
-                    escalation_date TEXT NOT NULL,
-                    risk_at_warning REAL NOT NULL,
-                    current_risk REAL NOT NULL,
-                    persistence_duration_months INTEGER NOT NULL,
-                    evidence TEXT,
-                    contractor_response TEXT,
-                    response_status TEXT NOT NULL,
-                    reason_for_escalation TEXT NOT NULL,
-                    full_audit_trail TEXT,
-                    FOREIGN KEY (project_id) REFERENCES monitored_projects(project_id) ON DELETE CASCADE,
-                    FOREIGN KEY (warning_id) REFERENCES contractor_warnings(warning_id) ON DELETE CASCADE
-                )
-            """)
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS authority_escalations (
+                        escalation_id TEXT PRIMARY KEY,
+                        project_id TEXT NOT NULL,
+                        warning_id TEXT NOT NULL,
+                        escalation_date TEXT NOT NULL,
+                        risk_at_warning DOUBLE PRECISION NOT NULL,
+                        current_risk DOUBLE PRECISION NOT NULL,
+                        persistence_duration_months INTEGER NOT NULL,
+                        evidence TEXT,
+                        contractor_response TEXT,
+                        response_status TEXT NOT NULL,
+                        reason_for_escalation TEXT NOT NULL,
+                        full_audit_trail TEXT,
+                        FOREIGN KEY (project_id) REFERENCES monitored_projects(project_id) ON DELETE CASCADE,
+                        FOREIGN KEY (warning_id) REFERENCES contractor_warnings(warning_id) ON DELETE CASCADE
+                    )
+                """)
 
-            # 6. Immutable Append-Only Audit Ledger
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS audit_events (
-                    event_id TEXT PRIMARY KEY,
-                    project_id TEXT NOT NULL,
-                    timestamp TEXT NOT NULL,
-                    reporting_month TEXT,
-                    event_type TEXT NOT NULL,
-                    actor TEXT NOT NULL,
-                    risk_probability REAL,
-                    evidence_snapshot TEXT,
-                    metadata TEXT,
-                    FOREIGN KEY (project_id) REFERENCES monitored_projects(project_id) ON DELETE CASCADE
-                )
-            """)
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS audit_events (
+                        event_id TEXT PRIMARY KEY,
+                        project_id TEXT NOT NULL,
+                        timestamp TEXT NOT NULL,
+                        reporting_month TEXT,
+                        event_type TEXT NOT NULL,
+                        actor TEXT NOT NULL,
+                        risk_probability DOUBLE PRECISION,
+                        evidence_snapshot TEXT,
+                        metadata TEXT,
+                        FOREIGN KEY (project_id) REFERENCES monitored_projects(project_id) ON DELETE CASCADE
+                    )
+                """)
 
-            # Indexes for fast lookup
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_obs_proj_month ON monthly_observations(project_id, reporting_month)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_warnings_proj ON contractor_warnings(project_id)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_audit_proj ON audit_events(project_id, timestamp)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_escalations_proj ON authority_escalations(project_id)")
-    finally:
-        conn.close()
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_obs_proj_month ON monthly_observations(project_id, reporting_month)")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_warnings_proj ON contractor_warnings(project_id)")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_audit_proj ON audit_events(project_id, timestamp)")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_escalations_proj ON authority_escalations(project_id)")
+                
+            else:
+                # SQLite Schema
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS monitored_projects (
+                        project_id TEXT PRIMARY KEY,
+                        project_name TEXT NOT NULL,
+                        sector TEXT NOT NULL,
+                        ministry TEXT,
+                        state TEXT,
+                        approved_cost REAL NOT NULL,
+                        revised_cost REAL,
+                        planned_start_date TEXT,
+                        planned_completion_date TEXT,
+                        contractor TEXT,
+                        initial_reporting_month TEXT NOT NULL,
+                        status TEXT NOT NULL DEFAULT 'ACTIVE',
+                        created_at TEXT NOT NULL,
+                        updated_at TEXT NOT NULL
+                    )
+                """)
+
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS monthly_observations (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        project_id TEXT NOT NULL,
+                        reporting_month TEXT NOT NULL,
+                        observation_number INTEGER NOT NULL,
+                        financial_progress REAL,
+                        physical_progress REAL,
+                        expenditure REAL,
+                        revised_cost REAL,
+                        completion_date TEXT,
+                        schedule_deviation_months REAL,
+                        milestone_status TEXT,
+                        milestone_slippage REAL,
+                        notes TEXT,
+                        supporting_documents TEXT,
+                        raw_prob REAL,
+                        calibrated_prob REAL,
+                        risk_tier TEXT,
+                        alert INTEGER,
+                        trajectory_status TEXT,
+                        history_confidence TEXT,
+                        trajectory_history_months INTEGER,
+                        top_explanations TEXT,
+                        features_snapshot TEXT,
+                        submitted_at TEXT NOT NULL,
+                        FOREIGN KEY (project_id) REFERENCES monitored_projects(project_id) ON DELETE CASCADE,
+                        UNIQUE (project_id, reporting_month)
+                    )
+                """)
+
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS contractor_warnings (
+                        warning_id TEXT PRIMARY KEY,
+                        project_id TEXT NOT NULL,
+                        issued_at TEXT NOT NULL,
+                        reporting_month TEXT NOT NULL,
+                        risk_probability REAL NOT NULL,
+                        risk_tier TEXT NOT NULL,
+                        warning_reason TEXT NOT NULL,
+                        deterministic_evidence TEXT,
+                        observed_trajectory TEXT,
+                        required_response TEXT NOT NULL,
+                        response_deadline TEXT NOT NULL,
+                        status TEXT NOT NULL,
+                        FOREIGN KEY (project_id) REFERENCES monitored_projects(project_id) ON DELETE CASCADE
+                    )
+                """)
+
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS contractor_responses (
+                        response_id TEXT PRIMARY KEY,
+                        warning_id TEXT NOT NULL,
+                        project_id TEXT NOT NULL,
+                        acknowledged INTEGER NOT NULL,
+                        response_text TEXT NOT NULL,
+                        corrective_action TEXT NOT NULL,
+                        expected_recovery_date TEXT,
+                        responsible_person TEXT,
+                        supporting_documents TEXT,
+                        submitted_at TEXT NOT NULL,
+                        FOREIGN KEY (warning_id) REFERENCES contractor_warnings(warning_id) ON DELETE CASCADE,
+                        FOREIGN KEY (project_id) REFERENCES monitored_projects(project_id) ON DELETE CASCADE
+                    )
+                """)
+
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS authority_escalations (
+                        escalation_id TEXT PRIMARY KEY,
+                        project_id TEXT NOT NULL,
+                        warning_id TEXT NOT NULL,
+                        escalation_date TEXT NOT NULL,
+                        risk_at_warning REAL NOT NULL,
+                        current_risk REAL NOT NULL,
+                        persistence_duration_months INTEGER NOT NULL,
+                        evidence TEXT,
+                        contractor_response TEXT,
+                        response_status TEXT NOT NULL,
+                        reason_for_escalation TEXT NOT NULL,
+                        full_audit_trail TEXT,
+                        FOREIGN KEY (project_id) REFERENCES monitored_projects(project_id) ON DELETE CASCADE,
+                        FOREIGN KEY (warning_id) REFERENCES contractor_warnings(warning_id) ON DELETE CASCADE
+                    )
+                """)
+
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS audit_events (
+                        event_id TEXT PRIMARY KEY,
+                        project_id TEXT NOT NULL,
+                        timestamp TEXT NOT NULL,
+                        reporting_month TEXT,
+                        event_type TEXT NOT NULL,
+                        actor TEXT NOT NULL,
+                        risk_probability REAL,
+                        evidence_snapshot TEXT,
+                        metadata TEXT,
+                        FOREIGN KEY (project_id) REFERENCES monitored_projects(project_id) ON DELETE CASCADE
+                    )
+                """)
+
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_obs_proj_month ON monthly_observations(project_id, reporting_month)")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_warnings_proj ON contractor_warnings(project_id)")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_audit_proj ON audit_events(project_id, timestamp)")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_escalations_proj ON authority_escalations(project_id)")
 
 
 def append_audit_event(
-    conn: sqlite3.Connection,
+    conn,
     project_id: str,
     event_type: str,
     actor: str,
@@ -312,8 +431,7 @@ def register_project(
 
     now_iso = datetime.now(timezone.utc).isoformat()
 
-    conn = get_db_connection(db_path)
-    try:
+    with get_db(db_path) as conn:
         with conn:
             # Check existing
             cur = conn.execute("SELECT project_id FROM monitored_projects WHERE project_id = ?", (pid,))
@@ -365,21 +483,16 @@ def register_project(
             "project": project_record,
             "initial_observation": initial_obs_result
         }
-    finally:
-        conn.close()
 
 
 def get_project(project_id: str, db_path: Optional[str] = None) -> Dict[str, Any]:
     """Retrieve monitored project profile."""
-    conn = get_db_connection(db_path)
-    try:
+    with get_db(db_path) as conn:
         cur = conn.execute("SELECT * FROM monitored_projects WHERE project_id = ?", (project_id,))
         row = cur.fetchone()
         if row is None:
             raise ValueError(f"Monitored project '{project_id}' not found.")
         return dict(row)
-    finally:
-        conn.close()
 
 
 def list_projects(
@@ -391,8 +504,7 @@ def list_projects(
 ) -> Dict[str, Any]:
     """List monitored projects with optional sector and status filtering."""
     init_db(db_path)
-    conn = get_db_connection(db_path)
-    try:
+    with get_db(db_path) as conn:
         query = "SELECT * FROM monitored_projects WHERE 1=1"
         params: List[Any] = []
 
@@ -410,7 +522,7 @@ def list_projects(
         rows = [dict(r) for r in cur.fetchall()]
 
         # Total count
-        count_q = "SELECT COUNT(*) FROM monitored_projects WHERE 1=1"
+        count_q = "SELECT COUNT(*) AS c FROM monitored_projects WHERE 1=1"
         count_params: List[Any] = []
         if sector:
             count_q += " AND LOWER(sector) = LOWER(?)"
@@ -418,7 +530,7 @@ def list_projects(
         if status:
             count_q += " AND UPPER(status) = UPPER(?)"
             count_params.append(status.strip())
-        total = conn.execute(count_q, count_params).fetchone()[0]
+        total = conn.execute(count_q, count_params).fetchone()["c"]
 
         return {
             "total": total,
@@ -426,8 +538,6 @@ def list_projects(
             "offset": offset,
             "projects": rows
         }
-    finally:
-        conn.close()
 
 
 def submit_observation(
@@ -491,8 +601,7 @@ def submit_observation(
     if sch_dev is not None:
         sch_dev = float(sch_dev)
 
-    conn = get_db_connection(db_path)
-    try:
+    with get_db(db_path) as conn:
         # Check duplicate
         cur = conn.execute(
             "SELECT id FROM monthly_observations WHERE project_id = ? AND reporting_month = ?",
@@ -706,12 +815,10 @@ def submit_observation(
             "governance_status": governance_outcome,
             "governance_outcome": governance_outcome
         }
-    finally:
-        conn.close()
 
 
 def evaluate_governance_workflow(
-    conn: sqlite3.Connection,
+    conn,
     project_id: str,
     reporting_month: str,
     calibrated_prob: float,
@@ -912,10 +1019,10 @@ def evaluate_governance_workflow(
     # Project did NOT recover: risk remains >= 0.50
     # Track persistence duration across observations since warning issuance
     cur = conn.execute("""
-        SELECT COUNT(*) FROM monthly_observations
+        SELECT COUNT(*) AS c FROM monthly_observations
         WHERE project_id = ? AND reporting_month >= ? AND calibrated_prob >= ?
     """, (project_id, active_warning["reporting_month"], THRESHOLD_ESCALATE))
-    persistent_count = cur.fetchone()[0]
+    persistent_count = cur.fetchone()["c"]
 
     # Update warning status to PERSISTENT_DETERIORATION
     conn.execute(
@@ -1038,8 +1145,7 @@ def submit_contractor_response(
     now_iso = datetime.now(timezone.utc).isoformat()
     resp_id = f"RESP-{uuid.uuid4().hex[:8].upper()}"
 
-    conn = get_db_connection(db_path)
-    try:
+    with get_db(db_path) as conn:
         with conn:
             # Check warning
             cur = conn.execute(
@@ -1117,8 +1223,6 @@ def submit_contractor_response(
             "status": "RESPONSE_SUBMITTED",
             "submitted_at": now_iso
         }
-    finally:
-        conn.close()
 
 
 def get_project_status(project_id: str, db_path: Optional[str] = None) -> Dict[str, Any]:
@@ -1126,8 +1230,7 @@ def get_project_status(project_id: str, db_path: Optional[str] = None) -> Dict[s
     init_db(db_path)
     proj = get_project(project_id, db_path=db_path)
 
-    conn = get_db_connection(db_path)
-    try:
+    with get_db(db_path) as conn:
         # Latest observation
         cur = conn.execute("""
             SELECT * FROM monthly_observations WHERE project_id = ? ORDER BY reporting_month DESC LIMIT 1
@@ -1162,41 +1265,32 @@ def get_project_status(project_id: str, db_path: Optional[str] = None) -> Dict[s
             "active_escalation": dict(latest_esc) if latest_esc else None,
             "governance_state": proj["status"]
         }
-    finally:
-        conn.close()
 
 
 def get_project_observations(project_id: str, db_path: Optional[str] = None) -> List[Dict[str, Any]]:
     """Retrieve full chronological observations for a monitored project."""
     init_db(db_path)
-    conn = get_db_connection(db_path)
-    try:
+    with get_db(db_path) as conn:
         cur = conn.execute("""
             SELECT * FROM monthly_observations WHERE project_id = ? ORDER BY reporting_month ASC
         """, (project_id,))
         return [dict(r) for r in cur.fetchall()]
-    finally:
-        conn.close()
 
 
 def get_project_warnings(project_id: str, db_path: Optional[str] = None) -> List[Dict[str, Any]]:
     """Retrieve all contractor warnings issued for a project."""
     init_db(db_path)
-    conn = get_db_connection(db_path)
-    try:
+    with get_db(db_path) as conn:
         cur = conn.execute("""
             SELECT * FROM contractor_warnings WHERE project_id = ? ORDER BY issued_at ASC
         """, (project_id,))
         return [dict(r) for r in cur.fetchall()]
-    finally:
-        conn.close()
 
 
 def get_authority_escalations(sector: Optional[str] = None, db_path: Optional[str] = None) -> List[Dict[str, Any]]:
     """Retrieve portfolio-wide authority escalations with full dossier."""
     init_db(db_path)
-    conn = get_db_connection(db_path)
-    try:
+    with get_db(db_path) as conn:
         query = """
             SELECT e.*, p.project_name, p.sector, p.ministry, p.approved_cost
             FROM authority_escalations e
@@ -1211,18 +1305,13 @@ def get_authority_escalations(sector: Optional[str] = None, db_path: Optional[st
 
         cur = conn.execute(query, params)
         return [dict(r) for r in cur.fetchall()]
-    finally:
-        conn.close()
 
 
 def get_audit_trail(project_id: str, db_path: Optional[str] = None) -> List[Dict[str, Any]]:
     """Retrieve immutable chronological audit trail for a monitored project."""
     init_db(db_path)
-    conn = get_db_connection(db_path)
-    try:
+    with get_db(db_path) as conn:
         cur = conn.execute("""
             SELECT * FROM audit_events WHERE project_id = ? ORDER BY timestamp ASC
         """, (project_id,))
         return [dict(r) for r in cur.fetchall()]
-    finally:
-        conn.close()

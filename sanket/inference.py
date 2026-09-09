@@ -18,11 +18,11 @@ import numpy as np
 import pandas as pd
 import joblib
 
-MODEL_BUNDLE_PATH = os.path.join(os.path.dirname(__file__), "..", "DATA", "vigil_production_model.joblib")
+from sanket.storage import get_artifact
 
 _CACHED_ENGINE = None
 
-def load_inference_engine(model_path: str = MODEL_BUNDLE_PATH) -> Dict[str, Any]:
+def load_inference_engine(model_path: str = "DATA/vigil_production_model.joblib") -> Dict[str, Any]:
     """
     Load the frozen production model bundle (Model, Calibrator, Whitelist, Thresholds).
     Caches the engine in memory for fast reuse.
@@ -31,7 +31,7 @@ def load_inference_engine(model_path: str = MODEL_BUNDLE_PATH) -> Dict[str, Any]
     if _CACHED_ENGINE is not None:
         return _CACHED_ENGINE
 
-    norm_path = os.path.abspath(model_path)
+    norm_path = get_artifact(model_path)
     if not os.path.exists(norm_path):
         raise FileNotFoundError(
             f"Production model bundle '{norm_path}' not found. "

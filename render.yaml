@@ -3,7 +3,11 @@ services:
     name: sanket-api
     env: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "uvicorn sanket.api:app --host 0.0.0.0 --port 10000"
+    startCommand: "uvicorn sanket.api:app --host 0.0.0.0 --port $PORT"
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: SANKET_STORAGE_MODE
+        value: local
       - key: GEMINI_API_KEY
         sync: false

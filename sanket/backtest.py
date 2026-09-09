@@ -23,6 +23,7 @@ from typing import Dict, List, Any, Tuple
 import pandas as pd
 import numpy as np
 
+from sanket.storage import get_artifact
 from sanket.model import (
     load_model_config,
     validate_feature_leakage,
@@ -44,8 +45,11 @@ def run_walk_forward_backtest(
     Run complete walk-forward evaluation protocol.
     """
     config = load_model_config(config_path)
-    print(f"Loading model dataset from {dataset_path}...")
-    df = pd.read_parquet(dataset_path, engine="pyarrow")
+    actual_path = get_artifact(dataset_path)
+    if not os.path.exists(actual_path):
+        raise FileNotFoundError(f"Dataset '{actual_path}' not found.")
+
+    df = pd.read_parquet(actual_path, engine="pyarrow")
     print(f"Total dataset records: {len(df):,}")
 
     # Primary cohort filter

@@ -1,3 +1,8 @@
+import pytest
+from sanket import db
+@pytest.fixture(autouse=True)
+def mock_db(tmp_path, monkeypatch):
+    monkeypatch.setattr(db, "DEFAULT_SQLITE_PATH", str(tmp_path / "test.db"))
 """
 tests/test_demo_scenarios.py
 
@@ -196,7 +201,7 @@ def test_api_demo_seed_endpoint(monkeypatch, temp_demo_db):
     """
     Test the FastAPI endpoint POST /api/monitor/demo/seed.
     """
-    monkeypatch.setattr(monitoring, "DEFAULT_DB_PATH", temp_demo_db)
+    monkeypatch.setattr(db, "DEFAULT_SQLITE_PATH", temp_demo_db)
 
     client = TestClient(app)
 

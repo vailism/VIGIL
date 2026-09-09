@@ -1,4 +1,9 @@
 import pytest
+from sanket import db
+@pytest.fixture(autouse=True)
+def mock_db(tmp_path, monkeypatch):
+    monkeypatch.setattr(db, "DEFAULT_SQLITE_PATH", str(tmp_path / "test.db"))
+import pytest
 import os
 import json
 from unittest.mock import patch, MagicMock

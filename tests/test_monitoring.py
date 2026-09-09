@@ -1,3 +1,8 @@
+import pytest
+from sanket import db
+@pytest.fixture(autouse=True)
+def mock_db(tmp_path, monkeypatch):
+    monkeypatch.setattr(db, "DEFAULT_SQLITE_PATH", str(tmp_path / "test.db"))
 """
 tests/test_monitoring.py
 
@@ -35,7 +40,7 @@ from sanket.trajectory import compute_canonical_features_for_project
 def isolated_db(tmp_path, monkeypatch):
     """Ensure every test runs against a clean, isolated SQLite database."""
     test_db = str(tmp_path / "test_monitoring.db")
-    monkeypatch.setattr(monitoring, "DEFAULT_DB_PATH", test_db)
+    monkeypatch.setattr(db, "DEFAULT_SQLITE_PATH", test_db)
     monitoring.init_db(test_db)
     return test_db
 
