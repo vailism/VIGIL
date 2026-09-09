@@ -4,10 +4,6 @@
     {
       "source": "/api/:path*",
       "destination": "https://sanket-api.onrender.com/api/:path*"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/frontend/public/$1"
     }
   ]
 }
