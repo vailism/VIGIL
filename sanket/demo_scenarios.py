@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-vigil/demo_scenarios.py
+sanket/demo_scenarios.py
 
 Deterministic Demo Scenario Generator for VIGIL Operational Governance Workflows.
 
@@ -28,7 +28,7 @@ import os
 import argparse
 from typing import Dict, Any, List, Optional
 
-from vigil import monitoring
+from sanket import monitoring
 
 
 # ==============================================================================

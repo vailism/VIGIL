@@ -1,7 +1,7 @@
 """
 tests/test_replay.py
 
-Comprehensive tests for vigil.replay:
+Comprehensive tests for sanket.replay:
 1. Replay never uses future rows.
 2. Prediction at t is unchanged if future rows are removed (temporal invariance).
 3. First alert occurs strictly before event.
@@ -16,12 +16,12 @@ import pytest
 import numpy as np
 import pandas as pd
 
-from vigil.replay import (
+from sanket.replay import (
     get_project_replay,
     replay_project,
     replay_project_from_dataframe
 )
-from vigil.inference import load_inference_engine
+from sanket.inference import load_inference_engine
 
 @pytest.fixture(scope="module")
 def engine():

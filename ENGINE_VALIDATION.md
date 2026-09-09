@@ -1,4 +1,4 @@
-# VIGIL Engine Pipeline Validation & Verification Report
+# SANKET Engine Pipeline Validation & Verification Report
 
 **Document:** `ENGINE_VALIDATION.md`  
 **Execution Date:** September 6, 2026  
@@ -15,10 +15,10 @@ The four production pipeline stages were executed in sequence on the full 336-re
 ```text
 Pipeline Stage        Module             Input File                     Output Artifact                Records   Execution Time
 -------------------------------------------------------------------------------------------------------------------------------
-1. Timelines          vigil.timeline     DATA/project_monthly.csv       DATA/project_timelines.parquet 443,195   ~3.2 sec
-2. Trajectories       vigil.trajectory   DATA/project_timelines.parquet DATA/project_trajectories.parquet 443,195 ~10.4 sec
-3. Targets            vigil.targets      DATA/project_timelines.parquet DATA/project_targets.parquet      443,195 ~7.8 sec
-4. Model Dataset      vigil.features     trajectories + targets         DATA/model_dataset.parquet     443,195   ~2.1 sec
+1. Timelines          sanket.timeline     DATA/project_monthly.csv       DATA/project_timelines.parquet 443,195   ~3.2 sec
+2. Trajectories       sanket.trajectory   DATA/project_timelines.parquet DATA/project_trajectories.parquet 443,195 ~10.4 sec
+3. Targets            sanket.targets      DATA/project_timelines.parquet DATA/project_targets.parquet      443,195 ~7.8 sec
+4. Model Dataset      sanket.features     trajectories + targets         DATA/model_dataset.parquet     443,195   ~2.1 sec
 ```
 
 * **Total Processed Rows:** **443,195 project-month records**

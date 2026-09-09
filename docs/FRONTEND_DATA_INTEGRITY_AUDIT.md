@@ -1,7 +1,7 @@
-# VIGIL Data + API Integrity Audit Report
+# SANKET Data + API Integrity Audit Report
 
 **Date of Audit:** September 6, 2026  
-**Audited Target:** VIGIL Infrastructure Project Early-Warning System (Frontend, FastAPI Backend, Frozen ML Engine, and Canonical Data Pipeline)  
+**Audited Target:** SANKET Infrastructure Project Early-Warning System (Frontend, FastAPI Backend, Frozen ML Engine, and Canonical Data Pipeline)  
 **Status:** COMPLETE — Strictly verified against actual code execution, live HTTP APIs, and underlying dataset storage.
 
 ---
@@ -21,15 +21,15 @@ The data pipeline was traced end-to-end from raw PDF extraction to the frontend 
    │
    ├── [DATA/projects.csv] (115,693 unique project entities)
    │
-   ▼ vigil/timeline.py, vigil/trajectory.py, vigil/targets.py
+   ▼ sanket/timeline.py, sanket/trajectory.py, sanket/targets.py
 [DATA/model_dataset.parquet] (443,195 rows, 115,693 unique project entities)
    │
-   ▼ vigil/portfolio.py (SanitizedPortfolio: macro-artifact filtration & scoring)
+   ▼ sanket/portfolio.py (SanitizedPortfolio: macro-artifact filtration & scoring)
    ├── 111,522 Excluded Macro-Summary Entities (Table 1–12, State & Sector summaries)
    ├── 4,171 Genuine Infrastructure Projects
    └── 2,319 Active Surveillance Portfolio (Latest report >= 2024-01)
    │
-   ▼ vigil/api.py (FastAPI REST Service on port 8000)
+   ▼ sanket/api.py (FastAPI REST Service on port 8000)
    ├── GET /health
    ├── GET /api/dashboard/summary
    ├── GET /api/projects
@@ -55,8 +55,8 @@ The data pipeline was traced end-to-end from raw PDF extraction to the frontend 
 | **Canonical Observations** | `DATA/project_monthly.csv` | **443,195 records** | `pandas.read_csv()` / `csv.reader()` |
 | **Longitudinal Entities** | `DATA/projects.csv` | **115,693 unique entities** | `df['project_id'].nunique()` |
 | **Model Dataset** | `DATA/model_dataset.parquet` | **443,195 rows** | `pyarrow.parquet.read_table()` |
-| **Macro Artifact Filter** | `vigil/portfolio.py` | **111,522 entities excluded** | `is_macro_summary_artifact()` filter |
-| **Genuine Projects** | `vigil/portfolio.py` | **4,171 genuine projects** | `p.genuine_project_count` |
+| **Macro Artifact Filter** | `sanket/portfolio.py` | **111,522 entities excluded** | `is_macro_summary_artifact()` filter |
+| **Genuine Projects** | `sanket/portfolio.py` | **4,171 genuine projects** | `p.genuine_project_count` |
 | **Active Monitoring** | `/api/dashboard/summary` | **2,319 active projects** | Latest observation $\ge$ `2024-01` |
 | **Historical Archive** | `/api/dashboard/summary` | **1,852 historical projects** | Latest observation < `2024-01` |
 
@@ -111,9 +111,9 @@ All endpoints were called directly on `http://127.0.0.1:8000` and validated:
 
 ## 4. Portfolio Verification Against Backend Source
 
-Verification against `vigil/portfolio.py` execution on `DATA/model_dataset.parquet`:
+Verification against `sanket/portfolio.py` execution on `DATA/model_dataset.parquet`:
 
-| Metric | Source Calculation in `vigil/portfolio.py` | Verified Value |
+| Metric | Source Calculation in `sanket/portfolio.py` | Verified Value |
 |---|---|---|
 | **Archive Extracted Entities** | `df_full['project_id'].nunique()` | **115,693** |
 | **Excluded Macro Entities** | Entities matching macro keywords, State/Sector summaries | **111,522** |
@@ -161,7 +161,7 @@ grep -rnE "(2319|1407|435|175|302|3824415|38\.24)" frontend/src/
 
 ## 6. Project Search Scope Verification
 
-Inspection of `/api/projects` in `vigil/api.py` (lines 120–140):
+Inspection of `/api/projects` in `sanket/api.py` (lines 120–140):
 
 ```python
     df = ctx["portfolio_df"].copy() # Active projects (2,319)
@@ -191,7 +191,7 @@ Inspection of `/api/projects` in `vigil/api.py` (lines 120–140):
 
 ## 7. Demo Data Verification
 
-Inspection of `frontend/src/pages/DemoMode.jsx` against `vigil/demo_scenarios.py` and `vigil/monitoring.py`:
+Inspection of `frontend/src/pages/DemoMode.jsx` against `sanket/demo_scenarios.py` and `sanket/monitoring.py`:
 
 1. **No Duplicate Mock Objects in Frontend**:
    - The frontend does not hardcode observation arrays, risk percentages, or progression timelines.
@@ -215,8 +215,8 @@ A full codebase search was conducted across the frontend for sensitive wording t
 
 | Term Searched | File | Line | Snippet Found | Audit Assessment |
 |---|---|---|---|---|
-| **"Government of India" / "Ministry of Statistics"** | `frontend/index.html` | 7 | `<meta name="description" content="VIGIL — Early-Warning Infrastructure Risk Intelligence System. Government of India, Ministry of Statistics & Programme Implementation." />` | **FLAGGED:** Meta description text could be misconstrued as an official government attribution. Recommended to clarify as "Developed for Smart India Hackathon based on public MoSPI Flash Report data." |
-| **"statutory"** | `frontend/src/services/api.js` | 282 | `description: 'Statutory cure window active. Corrective action plan required.'` | **FLAGGED:** Found in fallback status descriptions in `api.js`. VIGIL's cure window is an algorithmic early-warning construct, not a statutory regulation. |
+| **"Government of India" / "Ministry of Statistics"** | `frontend/index.html` | 7 | `<meta name="description" content="SANKET — Early-Warning Infrastructure Risk Intelligence System. Government of India, Ministry of Statistics & Programme Implementation." />` | **FLAGGED:** Meta description text could be misconstrued as an official government attribution. Recommended to clarify as "Developed for Smart India Hackathon based on public MoSPI Flash Report data." |
+| **"statutory"** | `frontend/src/services/api.js` | 282 | `description: 'Statutory cure window active. Corrective action plan required.'` | **FLAGGED:** Found in fallback status descriptions in `api.js`. SANKET's cure window is an algorithmic early-warning construct, not a statutory regulation. |
 | **"15-day"** | `frontend/src/pages/DemoMode.jsx` | 229 | `<span>Contractor warning issued (15-day response notice)</span>` | **INFORMATIONAL:** Used to describe the demonstration scenario timeline step. |
 | **"official"** | `frontend/src/pages/ProjectDetails.jsx` | 116 | `payload_json: JSON.stringify({ notes: 'Point-in-time timeline reconstructed from official repository' })` | **INFORMATIONAL:** Refers to MoSPI public publication repository as source of historical data. |
 

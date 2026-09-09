@@ -1,7 +1,7 @@
 """
 tests/test_trajectory.py
 
-Unit tests for vigil.trajectory:
+Unit tests for sanket.trajectory:
 - Mathematical accuracy of velocity (1m, 3m) and acceleration
 - Expenditure burn rate and baseline ratio
 - Schedule drift and deviation change
@@ -13,7 +13,7 @@ Unit tests for vigil.trajectory:
 import pytest
 import pandas as pd
 import numpy as np
-from vigil.trajectory import compute_trajectories
+from sanket.trajectory import compute_trajectories
 
 def test_trajectory_financial_and_expenditure():
     data = [

@@ -1,9 +1,9 @@
 /* ═══════════════════════════════════════════════════════════
-   VIGIL // RISKSYS  —  AI Assistant Module
+   SANKET // RISKSYS  —  AI Assistant Module
    ═══════════════════════════════════════════════════════════ */
 
 const Assistant = (() => {
-  const STORAGE_KEY = 'vigil_assistant_history';
+  const STORAGE_KEY = 'sanket_assistant_history';
 
   let isOpen = false;
   let isSending = false;
@@ -114,7 +114,7 @@ const Assistant = (() => {
     saveHistory();
 
     try {
-      const context = window.VIGIL_DATA.getAssistantContext();
+      const context = window.SANKET_DATA.getAssistantContext();
       const res = await fetch('/api/assistant', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

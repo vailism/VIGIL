@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-vigil/inference.py
+sanket/inference.py
 
 Production Inference Engine for VIGIL.
 Features:

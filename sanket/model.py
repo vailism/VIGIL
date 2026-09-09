@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-vigil/model.py
+sanket/model.py
 
 Core machine learning models, baselines, leakage audits, and evaluation metrics for VIGIL.
 Implements:

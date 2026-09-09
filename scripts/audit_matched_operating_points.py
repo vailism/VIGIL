@@ -24,7 +24,7 @@ from typing import Dict, List, Any, Tuple
 import lightgbm as lgb
 from sklearn.metrics import average_precision_score, roc_auc_score, brier_score_loss, confusion_matrix
 
-from vigil.model import load_model_config, train_lgbm_model, predict_lgbm_probs
+from sanket.model import load_model_config, train_lgbm_model, predict_lgbm_probs
 
 def ym_to_int(ym: Any) -> int:
     y, m = map(int, str(ym).split("-"))

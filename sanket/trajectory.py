@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-vigil/trajectory.py
+sanket/trajectory.py
 
 Phase 2 & Phase 3: Trajectory Engine & Interpretable Risk Scoring for VIGIL.
 Calculates strictly point-in-time temporal velocities, accelerations, EWMA trends,
@@ -349,7 +349,7 @@ def run_trajectory_pipeline(
 ) -> pd.DataFrame:
     """Run trajectory pipeline end-to-end from Parquet timeline input."""
     if not os.path.exists(input_path):
-        raise FileNotFoundError(f"Timelines file '{input_path}' not found. Run vigil.timeline first.")
+        raise FileNotFoundError(f"Timelines file '{input_path}' not found. Run sanket.timeline first.")
 
     print(f"Loading timelines from {input_path}...")
     df_timelines = pd.read_parquet(input_path, engine="pyarrow")

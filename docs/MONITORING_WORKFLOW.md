@@ -1,13 +1,13 @@
-# VIGIL Operational Monitoring Layer: Operational Workflow & Governance Specification
+# SANKET Operational Monitoring Layer: Operational Workflow & Governance Specification
 
 ## 1. Overview & Product Architecture
 
-The **VIGIL Operational Monitoring Layer** translates VIGIL's frozen machine-learning intelligence into a production monitoring, early-warning, and governance workflow for ongoing infrastructure projects.
+The **SANKET Operational Monitoring Layer** translates SANKET's frozen machine-learning intelligence into a production monitoring, early-warning, and governance workflow for ongoing infrastructure projects.
 
 In the operational workflow:
 1. An infrastructure project is onboarded once.
 2. The project authority submits actual monthly physical and financial progress reports.
-3. VIGIL reconstructs the project timeline and evaluates trajectory features strictly at the reporting point in time.
+3. SANKET reconstructs the project timeline and evaluates trajectory features strictly at the reporting point in time.
 4. The frozen LightGBM model generates an early deterioration risk probability.
 5. The **Governance Layer** operates downstream of the model:
    - High-risk signals trigger a formal **Contractor Warning**.
@@ -53,10 +53,10 @@ In the operational workflow:
 
 ## 2. Project Age vs. Observation Number Semantics
 
-VIGIL enforces strict differentiation between observation counters and actual project age:
+SANKET enforces strict differentiation between observation counters and actual project age:
 
 1. **`observation_number` ($1, 2, 3\dots$)**:
-   - Represents the sequential monthly submission index under VIGIL operational surveillance.
+   - Represents the sequential monthly submission index under SANKET operational surveillance.
    - Month 1 is always $1$, Month 2 is $2$, and so on.
    - Determines trajectory evidence availability ($V_{\text{fin}}$, $A_{\text{fin}}$).
 
@@ -114,7 +114,7 @@ Adding, modifying, or deleting any subsequent observations (e.g. at month $t+1, 
 
 ## 5. Governance Architecture & Separation of Concerns
 
-VIGIL enforces strict structural decoupling between the statistical model and executive governance:
+SANKET enforces strict structural decoupling between the statistical model and executive governance:
 
 ```
 +-------------------------------------------------------------+
@@ -137,7 +137,7 @@ VIGIL enforces strict structural decoupling between the statistical model and ex
 ```
 
 ### Risk Tier Thresholds
-Operating thresholds are frozen across all VIGIL modules:
+Operating thresholds are frozen across all SANKET modules:
 - **`NORMAL`**: $\text{Risk} < 0.40$
 - **`WATCH`**: $0.40 \le \text{Risk} < 0.45$
 - **`REVIEW`**: $0.45 \le \text{Risk} < 0.50$
@@ -171,14 +171,14 @@ stateDiagram-v2
 - **Project State**: Transitions from `WARNING_ISSUED` to `CONTRACTOR_RESPONDED`.
 
 ### 3. Empirical Recovery Verification
-A project is not declared recovered simply because an algorithm score drops. VIGIL mandates **empirical verification**:
+A project is not declared recovered simply because an algorithm score drops. SANKET mandates **empirical verification**:
 - Risk probability must drop below the escalation threshold ($< 0.50$).
 - **Measurable improvement** must be demonstrated in at least one objective trajectory dimension:
   1. Positive expenditure acceleration ($A_{\text{fin}} > 0$).
   2. Positive progress velocity ($V_{\text{fin}} > 0$).
   3. Reduction in cumulative schedule delay ($\Delta \text{delay} \le 0$).
   4. Measurable decrease in Trajectory Risk Score.
-- If trajectory evidence is absent, VIGIL reports `recovery_status = "INSUFFICIENT_EVIDENCE"` rather than fabricating a recovery state.
+- If trajectory evidence is absent, SANKET reports `recovery_status = "INSUFFICIENT_EVIDENCE"` rather than fabricating a recovery state.
 
 ### 4. Authority Escalation
 - **Trigger**: Severe deterioration persists for **2 consecutive monthly reporting cycles** with risk $\ge 0.50$ after warning issuance without empirical recovery, OR contractor fails to respond by the statutory deadline.
@@ -200,7 +200,7 @@ All operational lifecycle transitions, model predictions, warning issuances, con
 
 ## 8. Database Schema & Storage Specifications
 
-VIGIL stores operational monitoring data in `DATA/monitoring.db` (SQLite):
+SANKET stores operational monitoring data in `DATA/monitoring.db` (SQLite):
 
 ```sql
 -- Monitored projects master
@@ -297,7 +297,7 @@ All monitoring endpoints are mounted under `/api/monitor`:
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `POST` | `/api/monitor/projects` | Onboard a new infrastructure project into VIGIL surveillance |
+| `POST` | `/api/monitor/projects` | Onboard a new infrastructure project into SANKET surveillance |
 | `GET` | `/api/monitor/projects` | List all monitored projects with latest risk tier and governance status |
 | `GET` | `/api/monitor/projects/{id}` | Retrieve project details, latest observation, and active warning/escalation state |
 | `POST` | `/api/monitor/projects/{id}/observations` | Submit monthly progress report and generate point-in-time prediction |
@@ -312,7 +312,7 @@ All monitoring endpoints are mounted under `/api/monitor`:
 ## 10. Regulatory & Legal Disclaimer
 
 > [!IMPORTANT]
-> **VIGIL is an early-warning risk forecasting and decision-support system, NOT a statutory legal tribunal.**
+> **SANKET is an early-warning risk forecasting and decision-support system, NOT a statutory legal tribunal.**
 > 
 > - **Predictive Intelligence Only**: Model probabilities denote empirical statistical risk of future cost overrun or commissioning delays based on longitudinal trajectory patterns.
 > - **No Deterministic Liability**: Issuance of a Contractor Warning or Authority Escalation does not constitute a legal finding of contractual default or negligence.

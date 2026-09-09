@@ -1,7 +1,7 @@
 """
 tests/test_timeline.py
 
-Unit tests for vigil.timeline:
+Unit tests for sanket.timeline:
 - Duplicate project/month detection
 - Strict chronological ordering
 - Observation gap calculations
@@ -12,7 +12,7 @@ Unit tests for vigil.timeline:
 import pytest
 import pandas as pd
 import numpy as np
-from vigil.timeline import build_project_timelines, ym_to_month_index
+from sanket.timeline import build_project_timelines, ym_to_month_index
 
 def test_ym_to_month_index():
     s = pd.Series(["2020-01", "2020-12", "2021-01"])

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-vigil/api.py
+sanket/api.py
 
 Production FastAPI Service for VIGIL.
 Thin REST layer exposing point-in-time inference, historical replay,
@@ -28,10 +28,10 @@ from google.genai import types
 
 dotenv.load_dotenv()
 
-from vigil.inference import load_inference_engine, get_risk_tier
-from vigil.replay import get_project_replay
-from vigil.portfolio import get_portfolio, SanitizedPortfolio, format_inr_currency
-from vigil import monitoring
+from sanket.inference import load_inference_engine, get_risk_tier
+from sanket.replay import get_project_replay
+from sanket.portfolio import get_portfolio, SanitizedPortfolio, format_inr_currency
+from sanket import monitoring
 
 # Initialize FastAPI application
 app = FastAPI(
@@ -517,7 +517,7 @@ def seed_demo_scenarios_endpoint(scenario: str = Query("all", pattern="^(1|2|all
     - scenario=2: The Authority Escalation Workflow (7 months)
     - scenario=all: Both scenarios
     """
-    from vigil import demo_scenarios
+    from sanket import demo_scenarios
     try:
         if scenario == "1":
             res = demo_scenarios.execute_scenario_1()

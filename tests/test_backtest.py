@@ -9,7 +9,7 @@ Unit tests for walk-forward validation structure:
 
 import pytest
 import yaml
-from vigil.model import load_model_config
+from sanket.model import load_model_config
 
 def test_walk_forward_fold_configurations():
     config = load_model_config("configs/model.yaml")

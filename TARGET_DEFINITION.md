@@ -1,19 +1,19 @@
-# VIGIL: Formal Target Definition & Leakage-Safe Prediction Framework
+# SANKET: Formal Target Definition & Leakage-Safe Prediction Framework
 
 **Document:** `TARGET_DEFINITION.md`  
 **Version:** 2.0 (Methodologically Refined)  
-**System:** VIGIL (Infrastructure Early-Warning & Trajectory Intelligence)  
+**System:** SANKET (Infrastructure Early-Warning & Trajectory Intelligence)  
 **Source Dataset:** `DATA/project_monthly.csv` (443,195 canonical project-months, 2003–2025)  
 
 ---
 
 ## Executive Summary: Target vs. Predictive Signal Separation
 
-A foundational principle of VIGIL is the strict conceptual and mathematical separation between **Predictive Signals (Features)** and **Formal Deterioration Outcomes (Targets)**:
+A foundational principle of SANKET is the strict conceptual and mathematical separation between **Predictive Signals (Features)** and **Formal Deterioration Outcomes (Targets)**:
 
 ```text
 ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                    VIGIL ARCHITECTURE                                       │
+│                                    SANKET ARCHITECTURE                                       │
 ├─────────────────────────────────────────────────────────────┬───────────────────────────────┤
 │                 PREDICTIVE SIGNALS (X)                      │      FORMAL TARGETS (Y)       │
 │                  [Observed at or before t]                  │  [Observed in Window (t, t+H]]│
@@ -34,7 +34,7 @@ A foundational principle of VIGIL is the strict conceptual and mathematical sepa
 
 ### Why This Separation Is Non-Negotiable
 * **No Label-Feature Circularity:** Cumulative expenditure is **not** a target label. A project spending money faster than its baseline is exhibiting a *behavioral distress signal*. Defining the target using expenditure would create circular leakage with expenditure velocity features. The target must capture the **external, official administrative consequence** (formal cost escalation or schedule slippage declared in future reports).
-* **The Core Premise of VIGIL:** Trajectory signals *anticipate* future official deterioration before government monitoring systems formally acknowledge and publish revised estimates.
+* **The Core Premise of SANKET:** Trajectory signals *anticipate* future official deterioration before government monitoring systems formally acknowledge and publish revised estimates.
 
 ---
 
@@ -83,7 +83,7 @@ $$Y_{\text{cost}}(t, H) = \begin{cases}
 ### 2.3 Threshold Sensitivity & Non-Hardcoded Formulation
 The 5% threshold ($\theta_{\text{cost}} = 0.05$) is established as an **initial candidate benchmark** reflecting standard government reporting materiality (e.g. ₹250 crore on a ₹5,000 crore project). 
 
-However, VIGIL will evaluate a continuous cost escalation metric alongside binary targets:
+However, SANKET will evaluate a continuous cost escalation metric alongside binary targets:
 * **Continuous Metric:** $\Delta C_{\text{pct}}(t, H) = \displaystyle \max_{k \in \{1, \dots, H\}} \left[ \frac{C_{\text{base}}(t+k) - C_{\text{base}}(t)}{C_{\text{base}}(t)} \right]$
 * **Sensitivity Suite:** During validation and backtesting, models will be evaluated across candidate thresholds:
   * $\theta_{\text{cost}} \in \{0.03, 0.05, 0.10\}$ (3%, 5%, 10%)
@@ -127,7 +127,7 @@ A project incurs a formal schedule overrun over horizon $H \in \{6, 12\}$ months
 
 ## 4. Multi-Target Structure & Cause Preservation
 
-Rather than forcing a single monolithic label, VIGIL maintains separate targets to preserve **causality and operational explainability**:
+Rather than forcing a single monolithic label, SANKET maintains separate targets to preserve **causality and operational explainability**:
 
 ```text
                ┌────────────────────────────────────────────────────────┐
@@ -161,7 +161,7 @@ $$\text{overrun\_composite\_H}(t) = \begin{cases}
 \end{cases}$$
 
 ### 4.3 Cause Categorization (`distress_type_H`)
-To enable VIGIL's dashboard to explain *why* an alert was generated:
+To enable SANKET's dashboard to explain *why* an alert was generated:
 $$\text{distress\_type\_12m}(t) = \begin{cases}
 \text{"BOTH"} & \text{if } Y_{\text{cost}}(t, 12) = 1 \text{ and } Y_{\text{sch}}(t, 12) = 1 \\
 \text{"COST"} & \text{if } Y_{\text{cost}}(t, 12) = 1 \text{ and } Y_{\text{sch}}(t, 12) = 0 \\
@@ -174,7 +174,7 @@ $$\text{distress\_type\_12m}(t) = \begin{cases}
 
 ## 5. Dual Eligibility: History Window vs. Target Censoring
 
-VIGIL explicitly separates two distinct eligibility concepts:
+SANKET explicitly separates two distinct eligibility concepts:
 
 ```text
 [First Seen] ────► [History Window >= 3 mos] ────► Month t ────► [Forward Window H] ────► [Dataset End]
@@ -300,10 +300,10 @@ A project-month observation $(i, t)$ is observable for horizon $H$ if and only i
 
 ---
 
-## 8. Final Recommendation: VIGIL Multi-Target Prediction Strategy
+## 8. Final Recommendation: SANKET Multi-Target Prediction Strategy
 
 ### Primary Model Architecture: Multi-Task / Multi-Target Suite
-Rather than collapsing all predictions into a single opaque number, VIGIL will deploy a **trio of coordinated models**:
+Rather than collapsing all predictions into a single opaque number, SANKET will deploy a **trio of coordinated models**:
 
 1. **Model 1 (Cost Escalation Risk):** Predicts $P\big(Y_{\text{cost}}(t, 12) = 1\big)$  
    *Target Audience:* Ministry Finance Advisers, Expenditure Department, Project Financial Officers.
@@ -315,4 +315,4 @@ Rather than collapsing all predictions into a single opaque number, VIGIL will d
 ### Why `overrun_composite_12m` Serves as the Primary Executive Benchmark
 * **Time-Cost Substitution Reality:** In large infrastructure contracts, project managers routinely accelerate expenditure to prevent delay, or absorb delay to avoid cost claims. Focusing exclusively on cost or schedule creates severe blind spots; the composite target identifies projects undergoing **systemic distress**.
 * **The 12-Month Operational Window:** A 12-month advance warning gives public authorities the requisite lead time to resolve right-of-way disputes, fast-track environmental clearances, or re-allocate budgetary capital before projects reach irreversible failure.
-* **Explainability via `distress_type_12m`:** While executive alert rankings use the composite probability, the VIGIL UI directly exposes whether the predicted distress is driven by **Cost**, **Schedule**, or **Both**.
+* **Explainability via `distress_type_12m`:** While executive alert rankings use the composite probability, the SANKET UI directly exposes whether the predicted distress is driven by **Cost**, **Schedule**, or **Both**.

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   VIGIL // RISKSYS  —  SVG Chart Rendering
+   SANKET // RISKSYS  —  SVG Chart Rendering
    ═══════════════════════════════════════════════════════════ */
 
 const Charts = (() => {
@@ -49,10 +49,10 @@ const Charts = (() => {
     const chartW = w - padL - padR;
     const chartH = h - padT - padB;
 
-    const { labels, target, contractorReport, vigilTelemetry, anomalyPoint, discrepancyGap } = chartData;
+    const { labels, target, contractorReport, sanketTelemetry, anomalyPoint, discrepancyGap } = chartData;
     const n = target.length;
 
-    const maxVal = Math.max(100, ...target, ...contractorReport, ...vigilTelemetry);
+    const maxVal = Math.max(100, ...target, ...contractorReport, ...sanketTelemetry);
     const yMax = Math.ceil(maxVal / 25) * 25;
 
     function xPos(i) { return padL + (n > 1 ? (i / (n - 1)) * chartW : chartW / 2); }
@@ -73,10 +73,10 @@ const Charts = (() => {
       gridLines += `<text x="${padL - 4}" y="${y + 3}" fill="#9ca3af" font-size="8" text-anchor="end" font-family="'JetBrains Mono', monospace">${pct}%</text>`;
     }
 
-    // Shaded area between contractor and vigil (discrepancy zone)
+    // Shaded area between contractor and sanket (discrepancy zone)
     let areaPath = `M ${xPos(0)},${yPos(contractorReport[0])}`;
     for (let i = 1; i < n; i++) areaPath += ` L ${xPos(i)},${yPos(contractorReport[i])}`;
-    for (let i = n - 1; i >= 0; i--) areaPath += ` L ${xPos(i)},${yPos(vigilTelemetry[i])}`;
+    for (let i = n - 1; i >= 0; i--) areaPath += ` L ${xPos(i)},${yPos(sanketTelemetry[i])}`;
     areaPath += ' Z';
 
     let annotations = '';
@@ -84,7 +84,7 @@ const Charts = (() => {
     if (anomalyPoint) {
       const aIdx = anomalyPoint.index;
       const anomalyX = xPos(aIdx);
-      const anomalyY = yPos(vigilTelemetry[aIdx]);
+      const anomalyY = yPos(sanketTelemetry[aIdx]);
       const anomalyLines = anomalyPoint.label.split('\\n');
       annotations += `
         <!-- Anomaly marker -->
@@ -98,7 +98,7 @@ const Charts = (() => {
     if (discrepancyGap) {
       const dIdx = discrepancyGap.index;
       const gapTopY = yPos(contractorReport[dIdx]);
-      const gapBotY = yPos(vigilTelemetry[dIdx]);
+      const gapBotY = yPos(sanketTelemetry[dIdx]);
       const gapX = xPos(dIdx);
       annotations += `
         <!-- Discrepancy gap line -->
@@ -119,16 +119,16 @@ const Charts = (() => {
         <!-- Lines -->
         ${polyline(target, '#d4d4d8', true)}
         ${polyline(contractorReport, '#a1a1aa', true)}
-        ${polyline(vigilTelemetry, '#000000')}
+        ${polyline(sanketTelemetry, '#000000')}
 
-        <!-- Data dots (vigil line) -->
-        ${vigilTelemetry.map((v, i) => `
+        <!-- Data dots (sanket line) -->
+        ${sanketTelemetry.map((v, i) => `
           <circle cx="${xPos(i)}" cy="${yPos(v)}" r="3" fill="#000000" stroke="#fff" stroke-width="1.5"/>
           <circle cx="${xPos(i)}" cy="${yPos(v)}" r="14" fill="transparent" class="hover-target" style="cursor:crosshair;"
             data-month="${labels[i]}" 
             data-target="${(target[i] || 0).toFixed(1)}" 
             data-contractor="${(contractorReport[i] || 0).toFixed(1)}" 
-            data-vigil="${(v || 0).toFixed(1)}" />
+            data-sanket="${(v || 0).toFixed(1)}" />
         `).join('')}
 
         ${annotations}
@@ -145,7 +145,7 @@ const Charts = (() => {
             <div style="font-weight:bold; margin-bottom:6px; color:#f8fafc;">${e.target.dataset.month}</div>
             <div style="color:#a1a1aa;">Target: <span style="float:right;margin-left:12px">${e.target.dataset.target}%</span></div>
             <div style="color:#d4d4d8;">Reported: <span style="float:right;margin-left:12px">${e.target.dataset.contractor}%</span></div>
-            <div style="color:#ffffff; font-weight:bold;">Vigil: <span style="float:right;margin-left:12px">${e.target.dataset.vigil}%</span></div>
+            <div style="color:#ffffff; font-weight:bold;">Sanket: <span style="float:right;margin-left:12px">${e.target.dataset.sanket}%</span></div>
           `;
         });
         targetEl.addEventListener('mousemove', (e) => {

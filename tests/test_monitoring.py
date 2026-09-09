@@ -25,10 +25,10 @@ import numpy as np
 import pandas as pd
 from fastapi.testclient import TestClient
 
-from vigil.api import app
-from vigil import monitoring
-from vigil.inference import load_inference_engine, predict_point_in_time
-from vigil.trajectory import compute_canonical_features_for_project
+from sanket.api import app
+from sanket import monitoring
+from sanket.inference import load_inference_engine, predict_point_in_time
+from sanket.trajectory import compute_canonical_features_for_project
 
 
 @pytest.fixture(autouse=True)

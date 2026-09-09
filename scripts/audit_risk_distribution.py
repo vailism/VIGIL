@@ -4,8 +4,8 @@ scripts/audit_risk_distribution.py
 In-depth audit of risk tier distribution, historical fold prevalence,
 and root-cause decomposition of the active portfolio ESCALATE share.
 """
-from vigil.portfolio import get_portfolio
-from vigil.inference import load_inference_engine
+from sanket.portfolio import get_portfolio
+from sanket.inference import load_inference_engine
 import pandas as pd
 import numpy as np
 

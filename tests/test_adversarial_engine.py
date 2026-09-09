@@ -30,12 +30,12 @@ import numpy as np
 import pandas as pd
 from starlette.testclient import TestClient
 
-from vigil.api import app
-from vigil.inference import load_inference_engine, predict_point_in_time, explain_prediction, get_risk_tier
-from vigil.trajectory import compute_canonical_features_for_project, compute_trajectories
-from vigil.targets import compute_targets
-from vigil.model import validate_feature_leakage, FORBIDDEN_FEATURE_KEYWORDS
-from vigil.monitoring import (
+from sanket.api import app
+from sanket.inference import load_inference_engine, predict_point_in_time, explain_prediction, get_risk_tier
+from sanket.trajectory import compute_canonical_features_for_project, compute_trajectories
+from sanket.targets import compute_targets
+from sanket.model import validate_feature_leakage, FORBIDDEN_FEATURE_KEYWORDS
+from sanket.monitoring import (
     register_project,
     submit_observation,
     submit_contractor_response,
@@ -63,8 +63,8 @@ def temp_adv_db(tmp_path):
 @pytest.fixture
 def client(temp_adv_db, monkeypatch):
     """FastAPI TestClient with isolated monitoring DB."""
-    import vigil.monitoring
-    monkeypatch.setattr(vigil.monitoring, "DEFAULT_DB_PATH", temp_adv_db)
+    import sanket.monitoring
+    monkeypatch.setattr(sanket.monitoring, "DEFAULT_DB_PATH", temp_adv_db)
     return TestClient(app)
 
 

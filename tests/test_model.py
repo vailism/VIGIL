@@ -1,7 +1,7 @@
 """
 tests/test_model.py
 
-Unit tests for vigil.model:
+Unit tests for sanket.model:
 - Feature leakage detection assertion
 - Baseline A and Baseline B prediction accuracy
 - LightGBM training with missing and categorical features
@@ -12,7 +12,7 @@ Unit tests for vigil.model:
 import pytest
 import numpy as np
 import pandas as pd
-from vigil.model import (
+from sanket.model import (
     validate_feature_leakage,
     predict_baseline_a,
     predict_baseline_b,

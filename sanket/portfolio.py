@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-vigil/portfolio.py
+sanket/portfolio.py
 
 Portfolio Sanitization & Governance Presentation Layer.
 
@@ -27,7 +27,7 @@ from typing import Dict, List, Any, Optional, Tuple
 import numpy as np
 import pandas as pd
 
-from vigil.inference import load_inference_engine, get_risk_tier
+from sanket.inference import load_inference_engine, get_risk_tier
 
 # Indian States and Union Territories for state-level aggregate detection
 INDIAN_STATES = {

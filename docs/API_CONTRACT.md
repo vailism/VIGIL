@@ -1,6 +1,6 @@
-# VIGIL API Data Contract & Specification
+# SANKET API Data Contract & Specification
 
-**Service Name:** VIGIL Infrastructure Governance & Early Warning API  
+**Service Name:** SANKET Infrastructure Governance & Early Warning API  
 **Base URL:** `http://localhost:8000`  
 **API Version:** `1.0.0`  
 **Protocol:** HTTP/1.1 (JSON RFC 8259)  
@@ -36,7 +36,7 @@ Returns system readiness, service metadata, and portfolio index status.
 ```json
 {
   "status": "healthy",
-  "service": "vigil-api",
+  "service": "sanket-api",
   "version": "1.0.0",
   "model_loaded": true,
   "total_projects_indexed": 115693

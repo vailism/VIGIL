@@ -1,17 +1,17 @@
 
-# VIGIL
+# SANKET
 ## Infrastructure Early-Warning & Project Trajectory Intelligence System
 
-> **VIGIL monitors where infrastructure projects are heading — not just where they are today.**
+> **SANKET monitors where infrastructure projects are heading — not just where they are today.**
 
-VIGIL is an AI-powered early-warning system for large infrastructure projects. It analyzes historical project progress, expenditure, schedule behavior, and trajectory changes to identify projects that are **drifting toward cost or schedule overruns before conventional monitoring systems would flag them**.
+SANKET is an AI-powered early-warning system for large infrastructure projects. It analyzes historical project progress, expenditure, schedule behavior, and trajectory changes to identify projects that are **drifting toward cost or schedule overruns before conventional monitoring systems would flag them**.
 
 The system is designed around a simple distinction:
 
 **Traditional monitoring:**  
 > What is the current status of the project?
 
-**VIGIL:**  
+**SANKET:**  
 > Is the project's trajectory getting worse, and what is likely to happen next?
 
 ---
@@ -44,13 +44,13 @@ June          47%          High-risk trajectory
 
 A conventional status-based system may only identify the problem once the project is already delayed.
 
-VIGIL attempts to detect the deterioration before the failure becomes obvious.
+SANKET attempts to detect the deterioration before the failure becomes obvious.
 
 ---
 
 # 2. Core Idea
 
-VIGIL follows two complementary approaches:
+SANKET follows two complementary approaches:
 
 ### Trajectory Intelligence
 Detect changes in how a project is progressing.
@@ -128,7 +128,7 @@ The final system combines these signals into an actionable early-warning system.
                          │
                          ▼
                 ┌─────────────────┐
-                │ VIGIL DASHBOARD │
+                │ SANKET DASHBOARD │
                 │                 │
                 │ National View   │
                 │ Project Console │
@@ -162,7 +162,7 @@ Duplicate project-month pairs            0
 
 The final dataset will be regenerated after the remaining reports are processed.
 
-*These numbers are pilot-stage metrics and are not final VIGIL dataset statistics.*
+*These numbers are pilot-stage metrics and are not final SANKET dataset statistics.*
 
 ---
 
@@ -181,7 +181,7 @@ Example:
 | P001 | 2023-03 | 45.1 |
 | P001 | 2023-04 | 45.8 |
 
-This temporal structure is essential for VIGIL.
+This temporal structure is essential for SANKET.
 
 The system must never treat multiple extracted table rows representing the same project/month as separate observations.
 
@@ -222,7 +222,7 @@ Trajectory Engine
 # 7. Repository Structure
 
 ```text
-VIGIL/
+SANKET/
 │
 ├── DATA/
 │   ├── raw_extractions.csv
@@ -264,7 +264,7 @@ This file should be treated as the audit layer. Raw data should not be destroyed
 ---
 
 ### `project_monthly.csv`
-The primary dataset used by VIGIL.
+The primary dataset used by SANKET.
 
 Each row represents:
 **ONE PROJECT × ONE REPORTING MONTH**
@@ -373,7 +373,7 @@ Cleaning and deduplication happen in the canonical layer. The raw extraction lay
 
 # 10. Trajectory Engine
 
-Once the data ingestion stage is frozen, VIGIL will calculate temporal features.
+Once the data ingestion stage is frozen, SANKET will calculate temporal features.
 
 ### Progress Velocity
 $$V(t) = P(t) - P(t-1)$$
@@ -401,7 +401,7 @@ CUSUM may be used to detect sustained deviations from a project’s normal behav
 ### Peer Deviation
 Projects should not be judged using universal thresholds. A large railway project and a small water project may naturally have very different progress patterns.
 
-VIGIL therefore compares projects against appropriate peers based on available attributes such as:
+SANKET therefore compares projects against appropriate peers based on available attributes such as:
 - sector
 - ministry
 - project size
@@ -452,12 +452,12 @@ Additional features should only be added when justified by the available data.
 
 # 13. Preventing Data Leakage
 
-VIGIL must be evaluated as if it were operating in real time:
+SANKET must be evaluated as if it were operating in real time:
 
 ```text
 March 2023
     ↓
-VIGIL prediction
+SANKET prediction
     ↓
 April → September 2023
     ↓
@@ -472,7 +472,7 @@ The model must also not use final revised costs or completion dates when those v
 
 # 14. Backtesting
 
-VIGIL will use **walk-forward validation**:
+SANKET will use **walk-forward validation**:
 
 ```text
 Train:       historical data
@@ -497,9 +497,9 @@ Accuracy alone is not the primary metric.
 The main metric is:
 
 ### Early-Warning Lead Time
-$$\text{Lead Time} = \text{Actual Overrun Date} - \text{VIGIL Alert Date}$$
+$$\text{Lead Time} = \text{Actual Overrun Date} - \text{SANKET Alert Date}$$
 
-For historical projects that eventually overran, VIGIL will calculate how early it could have identified the deteriorating trajectory.
+For historical projects that eventually overran, SANKET will calculate how early it could have identified the deteriorating trajectory.
 
 The primary headline metric will be:
 $$\textbf{Median Early-Warning Lead Time}$$
@@ -522,7 +522,7 @@ The final dashboard will contain two primary views:
 
 ### National View
 ```text
-VIGIL
+SANKET
 Infrastructure Early Warning System
 Projects                 XXXX
 High Risk                  XX
@@ -579,10 +579,10 @@ SEP     78%
         ACTUAL OVERRUN
 ```
 
-The system then shows the point at which VIGIL would have raised an alert.
+The system then shows the point at which SANKET would have raised an alert.
 
 The final statement should be based entirely on actual backtesting:
-> *"VIGIL would have detected the deteriorating trajectory X months before the recorded overrun."*
+> *"SANKET would have detected the deteriorating trajectory X months before the recorded overrun."*
 
 ---
 
@@ -606,7 +606,7 @@ This should be described as a **Model Sensitivity Estimate** and not as a causal
 
 High risk alone is not enough.
 
-VIGIL can prioritize projects using:
+SANKET can prioritize projects using:
 $$\text{Priority} = \text{Risk} \times \text{Exposure}$$
 
 This allows administrators to focus attention on projects where deterioration is both:
@@ -712,13 +712,13 @@ Only after the temporal dataset has been verified should model development begin
 - **Prefer interpretable signals:** Velocity, acceleration, peer deviation, and schedule behavior should remain understandable to administrators.
 - **Never fabricate performance:** All model metrics must come from actual backtesting.
 - **Preserve provenance:** Every important prediction should ultimately be traceable to the underlying project observations.
-- **Keep the system focused:** VIGIL is an early-warning system, not a generic AI chatbot.
+- **Keep the system focused:** SANKET is an early-warning system, not a generic AI chatbot.
 
 ---
 
 # 24. Final Vision
 
-VIGIL transforms infrastructure monitoring from:
+SANKET transforms infrastructure monitoring from:
 > *"What went wrong?"*
 
 to:
@@ -736,7 +736,7 @@ The objective is not simply to identify failed projects. The objective is to ide
 ---
 
 ### Project
-**VIGIL** — Infrastructure Early-Warning & Project Trajectory Intelligence System  
+**SANKET** — Infrastructure Early-Warning & Project Trajectory Intelligence System  
 *Built for intelligent, proactive infrastructure project monitoring.*
 
 ---

@@ -1,8 +1,8 @@
-# VIGIL Portfolio Sanitization & Governance Audit
+# SANKET Portfolio Sanitization & Governance Audit
 
 ## Executive Summary
 
-An audit of the VIGIL Command Center telemetry revealed contamination of presentation metrics caused by automated PDF table extraction of MoSPI Flash Report executive summary tables (Tables 1–12 front matter). These tables contain aggregate macro totals across entire ministries, sectors, and states (e.g. Table 7 and Table 11 Railways totals) that lacked explicit project codes and were assigned synthetic hash identifiers (prefixed with `PRJ_`).
+An audit of the SANKET Command Center telemetry revealed contamination of presentation metrics caused by automated PDF table extraction of MoSPI Flash Report executive summary tables (Tables 1–12 front matter). These tables contain aggregate macro totals across entire ministries, sectors, and states (e.g. Table 7 and Table 11 Railways totals) that lacked explicit project codes and were assigned synthetic hash identifiers (prefixed with `PRJ_`).
 
 When treated as individual projects, these macro rows inflated:
 - Total portfolio entity counts (115,693 raw extracted identities)
@@ -11,7 +11,7 @@ When treated as individual projects, these macro rows inflated:
 - Sector capital allocations
 - Intervention queue rankings (where `PRJ_BB0B04A558ED` and `PRJ_7A8AEAB9026C`, representing ₹6.87 Lakh Cr aggregate Railways totals, dominated the top ranks).
 
-To establish an institutional-grade, governance-safe presentation layer while **strictly freezing the research dataset (`DATA/model_dataset.parquet`), ML model, target definitions, trajectory mathematics, and backtesting methodology**, VIGIL implements the **Portfolio Sanitization Layer** (`vigil/portfolio.py`).
+To establish an institutional-grade, governance-safe presentation layer while **strictly freezing the research dataset (`DATA/model_dataset.parquet`), ML model, target definitions, trajectory mathematics, and backtesting methodology**, SANKET implements the **Portfolio Sanitization Layer** (`sanket/portfolio.py`).
 
 ---
 

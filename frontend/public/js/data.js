@@ -1,8 +1,8 @@
 /* ═══════════════════════════════════════════════════════════
-   VIGIL // RISKSYS  —  Mock Dashboard Data
+   SANKET // RISKSYS  —  Mock Dashboard Data
    ═══════════════════════════════════════════════════════════ */
 
-window.VIGIL_DATA = {
+window.SANKET_DATA = {
   /* ── Portfolio-level metrics ─────────────────────────── */
   portfolio: {
     totalMonitored: '--',
@@ -50,7 +50,7 @@ window.VIGIL_DATA = {
     labels: [],
     target: [],
     contractorReport: [],
-    vigilTelemetry: [],
+    sanketTelemetry: [],
     anomalyPoint: null,
     discrepancyGap: null,
   },

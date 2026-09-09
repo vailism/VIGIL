@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-vigil/monitoring.py
+sanket/monitoring.py
 
 Production Operational Monitoring Layer for VIGIL.
 Enables end-to-end active project governance:
@@ -15,7 +15,7 @@ Enables end-to-end active project governance:
 
 Invariants:
 1. Strict separation from frozen research dataset (DATA/model_dataset.parquet is untouched).
-2. Canonical feature construction: reuses vigil.trajectory.compute_canonical_features_for_project.
+2. Canonical feature construction: reuses sanket.trajectory.compute_canonical_features_for_project.
 3. Point-in-time invariance: prediction(t) is invariant to future additions/deletions.
 4. Model/Governance decoupling: Model predicts risk; governance state machine decides interventions.
 """
@@ -29,8 +29,8 @@ from typing import Dict, List, Any, Optional, Tuple, Union
 import numpy as np
 import pandas as pd
 
-from vigil.inference import load_inference_engine, predict_point_in_time, get_risk_tier
-from vigil.trajectory import (
+from sanket.inference import load_inference_engine, predict_point_in_time, get_risk_tier
+from sanket.trajectory import (
     compute_canonical_features_for_project,
     ym_to_month_number
 )
@@ -441,7 +441,7 @@ def submit_observation(
     Submit a monthly progress observation for an actively monitored project.
     Executes:
     1. Chronology and boundary validation.
-    2. Canonical feature construction through month t (vigil.trajectory).
+    2. Canonical feature construction through month t (sanket.trajectory).
     3. Production LightGBM inference & calibration.
     4. Operational governance state machine evaluation.
     5. Immutable audit logging.

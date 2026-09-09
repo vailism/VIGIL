@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   VIGIL // RISKSYS  —  Command-Center Dashboard Stylesheet
+   SANKET // RISKSYS  —  Command-Center Dashboard Stylesheet
    ═══════════════════════════════════════════════════════════ */
 
 /* ── Tokens ──────────────────────────────────────────────── */
@@ -835,7 +835,7 @@ body {
 .legend-target { background: #94a3b8; }
 .legend-contractor { border-color: #6366f1; }
 .legend-contractor-line { border-color: #6366f1; }
-.legend-vigil { background: var(--cyan); }
+.legend-sanket { background: var(--cyan); }
 
 .chart-container {
   position: relative;

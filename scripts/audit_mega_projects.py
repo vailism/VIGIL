@@ -3,7 +3,7 @@
 scripts/audit_mega_projects.py
 Audit all active projects with C_base >= 25,000 Cr.
 """
-from vigil.portfolio import get_portfolio
+from sanket.portfolio import get_portfolio
 import pandas as pd
 import numpy as np
 

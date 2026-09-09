@@ -1,15 +1,15 @@
-# VIGIL Model Card: Infrastructure Trajectory Early-Warning Model
+# SANKET Model Card: Infrastructure Trajectory Early-Warning Model
 **Model Version:** 1.0 (Phase 1 Frozen Baseline)  
 **Date:** September 2026  
 **Framework:** LightGBM `4.7.0` (GBDT Classifier)  
-**Repository Module:** `vigil/model.py`, `vigil/backtest.py`, `configs/model.yaml`  
+**Repository Module:** `sanket/model.py`, `sanket/backtest.py`, `configs/model.yaml`  
 
 ---
 
 ## 1. Model Details & Intended Use
 
 ### 1.1 Developer & Context
-Developed as part of the VIGIL system (Vehicle for Infrastructure Governance & Intervention Logistics) for central monitoring of major and mega public sector infrastructure projects in India (sanctioned cost $\ge ₹150\text{ crore}$) tracked by the Ministry of Statistics and Programme Implementation (MoSPI).
+Developed as part of the SANKET system (Vehicle for Infrastructure Governance & Intervention Logistics) for central monitoring of major and mega public sector infrastructure projects in India (sanctioned cost $\ge ₹150\text{ crore}$) tracked by the Ministry of Statistics and Programme Implementation (MoSPI).
 
 ### 1.2 Primary Objective & Intended Use
 - **Primary Objective:** Provide predictive early warning of upcoming project distress (formal baseline cost revisions and schedule completion date drift) 3 to 11 months in advance of official administrative recording.
@@ -79,7 +79,7 @@ Validation strictly enforces chronological walk-forward splits with a 12-month f
 
 ### Benchmark Summary (Global Out-of-Fold, N = 56,514)
 
-| Metric | Baseline A (Status Heuristic) | Baseline B (Kinetic Heuristic) | Model A (Current State) | Model B (Trajectory Only) | Full VIGIL Model |
+| Metric | Baseline A (Status Heuristic) | Baseline B (Kinetic Heuristic) | Model A (Current State) | Model B (Trajectory Only) | Full SANKET Model |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **PR-AUC** | 0.4385 | 0.3393 | 0.6421 | 0.6022 | **0.6467** |
 | **ROC-AUC** | 0.6262 | 0.4701 | 0.7584 | 0.7260 | **0.7639** |
@@ -116,7 +116,7 @@ Operating thresholds must be chosen according to explicit administrative tradeof
 1. **Physical Progress Feature Sparsity:**
    Physical progress velocity features (`V_phys_1m`, `V_phys_3m`, `A_phys`) contribute zero split gain because physical progress is recorded in only **4.3% of historical reports**. While LightGBM natively routes missing features without distortion, ground-truth physical tracking remains constrained by source reporting.
 2. **Administrative Lag in Ground Truth:**
-   Formal cost revisions and revised completion dates reflect Cabinet/CCEA administrative approvals, which often occur 3 to 9 months after physical technical failure has materialized on site. Therefore, VIGIL's 3.0–8.0 month lead time reflects advance notice *before official administrative gazetting*.
+   Formal cost revisions and revised completion dates reflect Cabinet/CCEA administrative approvals, which often occur 3 to 9 months after physical technical failure has materialized on site. Therefore, SANKET's 3.0–8.0 month lead time reflects advance notice *before official administrative gazetting*.
 3. **Macro Prevalence Shifts:**
    In Fold 3 (2023–2024), schedule overrun prevalence increased to 47.9% (composite 52.2%) due to post-COVID deadline realignments and improved MoSPI schedule tracking coverage (rising from 28.6% in 2020 to 92.2% in 2023). Uncalibrated probabilities require threshold adjustments to $\tau = 0.40$–$0.45$ for balanced operational recall during high-prevalence epochs.
 
@@ -128,12 +128,12 @@ Operating thresholds must be chosen according to explicit administrative tradeof
 Feature importance scores reflect **predictive information gain** in gradient-boosted decision trees. High gain for `cost_revision_ratio` or `C_base` indicates that prior revisions and capital scale are strong statistical predictors of future revisions, **not** that past revisions cause project failure.
 
 ### 9.2 Defensible & Appropriate Claims
-* "VIGIL demonstrates out-of-fold predictive performance superior to the implemented baseline policies on the evaluated historical dataset."
-* "VIGIL's trajectory signals identify deteriorating infrastructure projects earlier than current-state monitoring while maintaining a practical false-alert burden."
+* "SANKET demonstrates out-of-fold predictive performance superior to the implemented baseline policies on the evaluated historical dataset."
+* "SANKET's trajectory signals identify deteriorating infrastructure projects earlier than current-state monitoring while maintaining a practical false-alert burden."
 * "At matched operational alert burden (8% of portfolio), trajectory features provide 4.0 months of early warning compared to 2.0 months for current-state metrics."
-* "At high confidence ($\tau = 0.50$), VIGIL maintains an 81.3% precision with a 2.38% false alert rate."
+* "At high confidence ($\tau = 0.50$), SANKET maintains an 81.3% precision with a 2.38% false alert rate."
 
 ### 9.3 Inappropriate & Disallowed Claims
-* *Do not claim:* "VIGIL is empirically proven to eliminate project overruns."
-* *Do not claim:* "VIGIL identifies the root causal drivers of engineering failure."
+* *Do not claim:* "SANKET is empirically proven to eliminate project overruns."
+* *Do not claim:* "SANKET identifies the root causal drivers of engineering failure."
 * *Do not claim:* "Raw LightGBM probabilities are perfectly calibrated without post-hoc adjustment."

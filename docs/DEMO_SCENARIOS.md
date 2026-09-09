@@ -1,8 +1,8 @@
-# VIGIL Operational Demo Scenarios
+# SANKET Operational Demo Scenarios
 
 ## Executive Overview
 
-The VIGIL operational demo scenario dataset provides two canonical, point-in-time deterministic workflows demonstrating the end-to-end lifecycle of infrastructure project governance:
+The SANKET operational demo scenario dataset provides two canonical, point-in-time deterministic workflows demonstrating the end-to-end lifecycle of infrastructure project governance:
 
 1. **Scenario 1 (`PRJ-DEMO-RECOVERY-01`) — The Contractor Recovery Workflow (5 Months)**:
    A project enters active monitoring healthy, experiences early trajectory deterioration, triggers an automated **Contractor Warning Notice**, submits an enforceable recovery plan with tangible corrective actions, demonstrates measurable progress acceleration, and is empirically confirmed **RECOVERED**.
@@ -12,7 +12,7 @@ The VIGIL operational demo scenario dataset provides two canonical, point-in-tim
 
 ### Strict Engine Integrity Guarantees
 
-- **Zero Bypasses & Zero Hardcoding**: Every prediction, risk tier, kinetic trajectory score, TreeSHAP explanation factor, and state machine transition is computed live by `vigil/monitoring.py` and `vigil/inference.py`.
+- **Zero Bypasses & Zero Hardcoding**: Every prediction, risk tier, kinetic trajectory score, TreeSHAP explanation factor, and state machine transition is computed live by `sanket/monitoring.py` and `sanket/inference.py`.
 - **Identical Feature Pipeline**: Uses the exact canonical 25-feature vector (`compute_canonical_features_for_project`) as the frozen production model.
 - **Point-in-Time Correctness**: Features through month $t$ strictly rely on observations up to month $t$, eliminating future information leakage.
 - **Audit Ledger Immutability**: Every step records cryptographic event UUIDs in the SQLite `audit_events` ledger.
@@ -60,14 +60,14 @@ The VIGIL operational demo scenario dataset provides two canonical, point-in-tim
 #### Month 3 (2024-03): Severe Deterioration & Warning Notice
 - **Observed Metrics**: Financial progress stalls at 11.2% (+0.2%/mo velocity). Subcontractor right-of-way disputes trigger ₹35.0 Cr expenditure surge (70% of sanction) and a 36.0-month schedule slippage.
 - **Engine Output**: Calibrated risk jumps to **51.95% (`ESCALATE`)**. Kinetic trajectory risk index escalates.
-- **Governance Outcome**: VIGIL triggers **`CONTRACTOR_WARNING_ISSUED`** (`WARN-XXXX`). 15-day cure notice issued requesting acknowledgment and recovery plan.
+- **Governance Outcome**: SANKET triggers **`CONTRACTOR_WARNING_ISSUED`** (`WARN-XXXX`). 15-day cure notice issued requesting acknowledgment and recovery plan.
 
 #### Post-Month 3: Formal Contractor Recovery Submission
 Between Month 3 and Month 4, the contractor submits formal acknowledgment and recovery plan via `POST /api/monitor/projects/{id}/warnings/{wid}/response`:
 ```json
 {
   "acknowledged": true,
-  "response_text": "Sterling & Wilson Power Infratech formally acknowledges receipt of VIGIL Early-Warning Notice. The delay was caused by a temporary liquidity bottleneck with earthmoving subcontractors. All outstanding disbursements have been cleared and escrow accounts replenished.",
+  "response_text": "Sterling & Wilson Power Infratech formally acknowledges receipt of SANKET Early-Warning Notice. The delay was caused by a temporary liquidity bottleneck with earthmoving subcontractors. All outstanding disbursements have been cleared and escrow accounts replenished.",
   "corrective_action": "1. Deployed 2 additional automated tensioning units to double line-stringing velocity.\n2. Instituted 24x7 double-shift site assembly for tower footing.\n3. Mobilized 120 additional skilled technical personnel.",
   "expected_recovery_date": "2025-06",
   "responsible_person": "Er. Vikramaditya Rathore, VP Power Infrastructure"
@@ -83,7 +83,7 @@ Warning state advances to `RESPONSE_SUBMITTED`; project state updates to `UNDER_
 #### Month 5 (2024-05): Trajectory Acceleration & Confirmed Recovery
 - **Observed Metrics**: Automated stringing units accelerate progress to 25.0% (+11.5%/mo velocity jump). Ministry approves formal revised sanction to ₹80.0 Cr, and revised schedule delay is cleared to 0.0m.
 - **Engine Output**: Calibrated risk drops sharply to **40.05% (`WATCH` < 50.0%)**. Trajectory kinetic index normalizes.
-- **Governance Outcome**: VIGIL state machine verifies:
+- **Governance Outcome**: SANKET state machine verifies:
   1. $P_{\text{cal}} < 0.50$ (Risk reduced).
   2. Velocity accelerated ($V_{\text{fin}} = 11.50\%$/mo $> 0.20\%$/mo at warning).
   3. Schedule delay stabilized ($0.0\text{m} \le 36.0\text{m}$).
@@ -137,7 +137,7 @@ Contractor submits formal response citing partner disputes and requesting extens
 ```json
 {
   "acknowledged": true,
-  "response_text": "Navayuga-Braithwaite JV acknowledges receipt of VIGIL Warning Notice. Working capital bottleneck due to consortium restructuring.",
+  "response_text": "Navayuga-Braithwaite JV acknowledges receipt of SANKET Warning Notice. Working capital bottleneck due to consortium restructuring.",
   "corrective_action": "1. Seeking credit limits from lenders.\n2. Pledged to deploy tampers upon bill clearance.\n3. Requested 6-month non-penalty extension.",
   "expected_recovery_date": "2025-09",
   "responsible_person": "Debasish Mukherjee, Project Director"
@@ -170,12 +170,12 @@ Contractor submits formal response citing partner disputes and requesting extens
 Run the deterministic demo generator directly from terminal:
 
 ```bash
-# Seed both scenarios into default production database (DATA/vigil_monitoring.db)
-PYTHONPATH=. .venv/bin/python vigil/demo_scenarios.py --scenario all
+# Seed both scenarios into default production database (DATA/sanket_monitoring.db)
+PYTHONPATH=. .venv/bin/python sanket/demo_scenarios.py --scenario all
 
 # Seed specific scenario into isolated test database
-PYTHONPATH=. .venv/bin/python vigil/demo_scenarios.py --scenario 1 --db DATA/test_scenario1.db
-PYTHONPATH=. .venv/bin/python vigil/demo_scenarios.py --scenario 2 --db DATA/test_scenario2.db
+PYTHONPATH=. .venv/bin/python sanket/demo_scenarios.py --scenario 1 --db DATA/test_scenario1.db
+PYTHONPATH=. .venv/bin/python sanket/demo_scenarios.py --scenario 2 --db DATA/test_scenario2.db
 ```
 
 ### 2. REST API Integration

@@ -1,7 +1,7 @@
 """
 tests/test_targets.py
 
-Unit tests for vigil.targets:
+Unit tests for sanket.targets:
 - Exact evaluation of 6m and 12m cost overrun targets
 - Exact evaluation of schedule deterioration targets
 - Composite overrun derivation
@@ -13,7 +13,7 @@ Unit tests for vigil.targets:
 import pytest
 import pandas as pd
 import numpy as np
-from vigil.targets import compute_targets
+from sanket.targets import compute_targets
 
 def test_targets_cost_overrun_and_censoring():
     # 15 continuous months of project observations

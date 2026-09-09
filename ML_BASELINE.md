@@ -1,13 +1,13 @@
-# VIGIL ML BASELINE & ARCHITECTURE SPECIFICATION
+# SANKET ML BASELINE & ARCHITECTURE SPECIFICATION
 **Version:** 1.0 (Phase 1 Evaluation)  
 **Date:** September 2026  
-**Module Reference:** `vigil/model.py`, `vigil/backtest.py`, `configs/model.yaml`  
+**Module Reference:** `sanket/model.py`, `sanket/backtest.py`, `configs/model.yaml`  
 
 ---
 
 ## 1. Overview & Problem Formulation
 
-VIGIL (Vehicle for Infrastructure Governance & Intervention Logistics) aims to provide **genuine early-warning intelligence** for major infrastructure projects under central monitoring in India. 
+SANKET (Vehicle for Infrastructure Governance & Intervention Logistics) aims to provide **genuine early-warning intelligence** for major infrastructure projects under central monitoring in India. 
 
 The goal of ML Phase 1 is **not** leaderboard optimization, presentation polishing, or deep hyperparameter searches. Instead, it is to rigorously establish:
 1. Whether kinematic trajectory features ($V_{\text{fin}}$, $A_{\text{fin}}$, $\text{EWMA}$, $V_{\text{exp}}$, completion date drift) provide **statistically meaningful predictive power** over naive static/current-state rules.
@@ -51,7 +51,7 @@ The following fields are strictly prohibited from entering the feature matrix:
 - Future indicators: any timestamp or observation where $\text{observation\_month} > t$.
 
 ### 3.2 Automated Leakage Assertion
-Every training run enforces an automated assertion in `vigil/model.py`:
+Every training run enforces an automated assertion in `sanket/model.py`:
 ```python
 forbidden_substrings = [
     "target", "overrun", "distress", "escalation_pct",
@@ -96,7 +96,7 @@ Features are declared explicitly in `configs/model.yaml`. Blind column ingestion
 
 ## 5. Baselines
 
-To prove that ML provides genuine early-warning capability, two non-trivial baseline policies are implemented in `vigil/model.py`:
+To prove that ML provides genuine early-warning capability, two non-trivial baseline policies are implemented in `sanket/model.py`:
 
 ### Baseline A: Current-State Threshold Policy
 Represents conventional project monitoring heuristics based on current static status:
@@ -178,7 +178,7 @@ A 12-month gap between train observation cutoff and test period ensures that 12-
 To test whether the model is merely memorizing project identities across time:
 - An independent strict split was performed where **956 projects were completely withheld from training** (trained on 113,924 observations; tested on 8,016 observations from unseen projects).
 - Performance on unseen projects: **PR-AUC = 0.6720, ROC-AUC = 0.6887, Precision = 66.68%, Recall = 41.45%**.
-- This proves VIGIL learns transferable trajectory patterns, not project ID memorization.
+- This proves SANKET learns transferable trajectory patterns, not project ID memorization.
 
 ---
 

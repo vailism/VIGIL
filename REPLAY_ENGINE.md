@@ -1,14 +1,14 @@
-# VIGIL Point-in-Time Inference & Historical Replay Engine Specification
+# SANKET Point-in-Time Inference & Historical Replay Engine Specification
 **Document:** `REPLAY_ENGINE.md`  
 **Version:** 1.0 (Product Engineering Phase 1)  
-**Modules:** `vigil/inference.py`, `vigil/replay.py`  
+**Modules:** `sanket/inference.py`, `sanket/replay.py`  
 **Test Suites:** `tests/test_inference.py`, `tests/test_replay.py`  
 
 ---
 
 ## 1. Architectural Overview & Point-in-Time Invariant
 
-The **VIGIL Inference & Historical Replay Engine** provides production-grade point-in-time scoring, longitudinal timeline reconstruction, and deterministic root-cause explanations for major infrastructure projects under central monitoring in India.
+The **SANKET Inference & Historical Replay Engine** provides production-grade point-in-time scoring, longitudinal timeline reconstruction, and deterministic root-cause explanations for major infrastructure projects under central monitoring in India.
 
 ### 1.1 The Strict Point-in-Time Rule
 At observation month $t$, the replay engine reconstructs **strictly what the system knew at or before $t$**:
@@ -23,7 +23,7 @@ At observation month $t$, the replay engine reconstructs **strictly what the sys
 The replay engine is exposed via a reusable Python service:
 
 ```python
-from vigil.replay import get_project_replay, replay_project
+from sanket.replay import get_project_replay, replay_project
 
 # Retrieve complete point-in-time longitudinal audit for an asset
 result = get_project_replay("020100044")
@@ -141,7 +141,7 @@ To ensure transparency and legal auditability:
 - **Total Historical Observations:** 135 monthly reports
 - **Actual Deterioration Milestone:** **June 2015** (`2015-06`)  
   *Cost baseline formally revised upward from ₹9.0 Cr to ₹5,677.0 Cr.*
-- **First VIGIL Alert:** **April 2015** (`2015-04`) (`ESCALATE`, $P = 0.9455$)
+- **First SANKET Alert:** **April 2015** (`2015-04`) (`ESCALATE`, $P = 0.9455$)
 - **Actionable Warning Lead Time:** **2 months** in advance
 - **Top 3 Explanations at First Alert:**
   1. *Historical baseline cost expansion over original sanction* (SHAP: +1.0087)
@@ -153,7 +153,7 @@ To ensure transparency and legal auditability:
 - **Total Historical Observations:** 139 monthly reports
 - **Actual Deterioration Milestone:** **February 2015** (`2015-02`)  
   *Cost formally escalated +40.4% beyond established baseline (from ₹5,366.0 Cr to ₹7,531.72 Cr).*
-- **First VIGIL Alert:** **June 2013** (`2013-06`) (`WATCH`, $P = 0.4005$)
+- **First SANKET Alert:** **June 2013** (`2013-06`) (`WATCH`, $P = 0.4005$)
 - **Actionable Warning Lead Time:** **20 months** in advance
 - **Top 3 Explanations at First Alert:**
   1. *Sanctioned capital baseline scale is ₹5,366.0 Cr* (SHAP: +0.6575)

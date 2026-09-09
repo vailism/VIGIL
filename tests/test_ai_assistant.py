@@ -4,13 +4,13 @@ import json
 from unittest.mock import patch, MagicMock
 from fastapi.testclient import TestClient
 
-from vigil.api import app
+from sanket.api import app
 
 client = TestClient(app)
 
 @pytest.fixture
 def mock_gemini_client():
-    with patch("vigil.api.genai.Client") as mock_client_cls:
+    with patch("sanket.api.genai.Client") as mock_client_cls:
         mock_client = MagicMock()
         mock_models = MagicMock()
         

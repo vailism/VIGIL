@@ -1,4 +1,4 @@
-# VIGIL Dataset Audit & Trajectory Readiness Report
+# SANKET Dataset Audit & Trajectory Readiness Report
 
 **Audit Date:** September 6, 2026  
 **Dataset Scope:** 336 MoSPI Infrastructure PDF Reports (2003–2025)  
@@ -195,7 +195,7 @@ Strict monthly continuity ratio  : 78.3% of consecutive pairs have gap == 1 mont
 
 ## 8. Recommended Modeling Fields for Trajectory Engine
 
-Based on data quality, density, and historical presence across 2003–2025, the following feature set is recommended for the VIGIL Trajectory Engine:
+Based on data quality, density, and historical presence across 2003–2025, the following feature set is recommended for the SANKET Trajectory Engine:
 
 ### Core Trajectory Metrics (All Eras: 2003–2025)
 1. **Financial Progress Velocity ($V_{\text{fin}}$):**

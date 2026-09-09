@@ -1,8 +1,8 @@
-# VIGIL Backend Validation — Portfolio Audit
+# SANKET Backend Validation — Portfolio Audit
 
 ## Executive Overview
 
-This validation audit provides a rigorous, empirical verification of the **VIGIL Portfolio Sanitization Layer** (`vigil/portfolio.py`) before final freeze.
+This validation audit provides a rigorous, empirical verification of the **SANKET Portfolio Sanitization Layer** (`sanket/portfolio.py`) before final freeze.
 
 In accordance with institutional governance directives:
 - **Research datasets (`DATA/model_dataset.parquet`, `DATA/project_monthly.csv`) remain 100% frozen.**
@@ -312,4 +312,4 @@ All API endpoints were regression-tested:
 
 1. **Portfolio Layer Is Sound and Governance-Safe**: The sanitization layer successfully isolates genuine infrastructure assets, eliminates macro-aggregate corruption, and preserves authentic sovereign mega-projects.
 2. **Keep Operational Thresholds Frozen**: The validated thresholds (WATCH $\ge 0.40$, REVIEW $\ge 0.45$, ESCALATE $\ge 0.50$) are calibrated against empirical deterioration risk. Do not artificially raise thresholds to suppress the ESCALATE count.
-3. **Institutional Messaging**: In governance presentations, clarify that the ~60.7% ESCALATE rate reflects the structural accumulation of delayed legacy projects in central monitoring, which VIGIL's trajectory engine accurately flags for prioritized oversight.
+3. **Institutional Messaging**: In governance presentations, clarify that the ~60.7% ESCALATE rate reflects the structural accumulation of delayed legacy projects in central monitoring, which SANKET's trajectory engine accurately flags for prioritized oversight.

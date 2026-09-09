@@ -1,11 +1,11 @@
-# VIGIL Backend-Only Adversarial Engine Hardening Audit
+# SANKET Backend-Only Adversarial Engine Hardening Audit
 
 ## Executive Summary & Engineering Verdict
 
 ### Engineering Verdict: **PASS**
 
 **Justification:**
-Every core invariant of the VIGIL system was tested under adversarial stress conditions:
+Every core invariant of the SANKET system was tested under adversarial stress conditions:
 1. **Point-in-Time Invariance:** **PASS**. Evaluated across multiple historical projects with future additions, 10x cost shocks, delay spikes, and future truncation. Predictions and feature vectors at month $T$ remain bit-for-bit identical ($0.0$ deviation).
 2. **Canonical Feature Parity:** **PASS**. Longitudinal features computed via `compute_canonical_features_for_project` match historical dataset reference values to within $1.4 \times 10^{-6}$ mean probability difference.
 3. **Feature Leakage Audit:** **PASS**. All 25 model features were verified against forward leakage. None reference target columns, unobserved future months, or retroactive revisions.
@@ -17,7 +17,7 @@ Every core invariant of the VIGIL system was tested under adversarial stress con
 
 ## 1. Audit Scope & Methodology
 
-The adversarial audit tested VIGIL's backend infrastructure against 16 distinct vulnerability vectors:
+The adversarial audit tested SANKET's backend infrastructure against 16 distinct vulnerability vectors:
 - Temporal leakage and backward drift of revisions.
 - Numerical equivalence between batch training and real-time streaming feature pipelines.
 - Data integrity under missing, sparse, corrupted, out-of-order, or hostile inputs.
@@ -30,7 +30,7 @@ All tests were executed against real historical infrastructure data (`DATA/model
 
 ## 2. Feature-by-Feature Leakage Audit Table
 
-For every one of the 25 production features in `DATA/vigil_production_model.joblib`:
+For every one of the 25 production features in `DATA/sanket_production_model.joblib`:
 
 | Feature Name | Source Input Columns | Calculation Window | Latest Observation Allowed | Temporal Invariance Verified? | Leakage Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -126,7 +126,7 @@ For every one of the 25 production features in `DATA/vigil_production_model.jobl
 ### Area 11: Data Isolation (PASS)
 - SHA-256 cryptographic hashes verified before and after extensive operational monitoring actions:
   - `DATA/model_dataset.parquet`: `MATCH (100% Identical)`
-  - `DATA/vigil_production_model.joblib`: `MATCH (100% Identical)`
+  - `DATA/sanket_production_model.joblib`: `MATCH (100% Identical)`
   - `DATA/project_monthly.csv`: `MATCH (100% Identical)`
 
 ### Area 12: Database Concurrency & Atomicity (PASS)
@@ -161,11 +161,11 @@ For every one of the 25 production features in `DATA/vigil_production_model.jobl
 
 1. **`ym_to_month_number` Calendar Month Validation (Fixed)**:
    - *Issue*: `ym_to_month_number` previously verified that `parts[1].isdigit()`, but failed to bound the integer value between 1 and 12. Consequently, impossible calendar strings like `"2024-13"` were erroneously converted to integer month numbers ($2024 \times 12 + 13$) instead of returning `None`.
-   - *Fix*: Added explicit `1 <= m <= 12` check in [`vigil/trajectory.py`](file:///Volumes/Coding%20/SIH/vigil/trajectory.py). Invalid months now fail validation cleanly with `ValueError`.
+   - *Fix*: Added explicit `1 <= m <= 12` check in [`sanket/trajectory.py`](file:///Volumes/Coding%20/SIH/sanket/trajectory.py). Invalid months now fail validation cleanly with `ValueError`.
 
 2. **Contractor Response Duplicate Prevention (Fixed)**:
    - *Issue*: `submit_contractor_response` previously checked whether the warning was in terminal states (`RECOVERED`, `ESCALATED`), but did not prevent a contractor from submitting repeated responses to an active warning already in `RESPONSE_SUBMITTED` state.
-   - *Fix*: Added check for existing responses in `contractor_responses` and enforced rejection if the warning is already in `RESPONSE_SUBMITTED` state in [`vigil/monitoring.py`](file:///Volumes/Coding%20/SIH/vigil/monitoring.py).
+   - *Fix*: Added check for existing responses in `contractor_responses` and enforced rejection if the warning is already in `RESPONSE_SUBMITTED` state in [`sanket/monitoring.py`](file:///Volumes/Coding%20/SIH/sanket/monitoring.py).
 
 3. **Convenience Output Fields in `submit_observation` (Hardened)**:
    - *Enhancement*: Added top-level convenience keys (`calibrated_prob`, `raw_prob`, `risk_tier`, `alert`, `features_snapshot`, `governance_outcome`) to the `submit_observation` response dictionary to provide seamless access for both programmatic callers and the REST API while maintaining full backwards compatibility.

@@ -1,7 +1,7 @@
 {
-  "name": "vigil-risksys",
+  "name": "sanket-risksys",
   "version": "1.0.0",
-  "description": "VIGIL // RISKSYS — Infrastructure Risk Admin Dashboard",
+  "description": "SANKET // RISKSYS — Infrastructure Risk Admin Dashboard",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

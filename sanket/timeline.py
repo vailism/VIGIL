@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-vigil/timeline.py
+sanket/timeline.py
 
 Phase 1: Production-quality timeline builder for VIGIL.
 Constructs strictly chronological, longitudinal project timelines from canonical

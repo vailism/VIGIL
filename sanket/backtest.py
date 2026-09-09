@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-vigil/backtest.py
+sanket/backtest.py
 
 Chronological Walk-Forward Backtesting & Benchmarking Engine for VIGIL.
 Executes:
@@ -23,7 +23,7 @@ from typing import Dict, List, Any, Tuple
 import pandas as pd
 import numpy as np
 
-from vigil.model import (
+from sanket.model import (
     load_model_config,
     validate_feature_leakage,
     predict_baseline_a,

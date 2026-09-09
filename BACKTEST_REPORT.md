@@ -1,4 +1,4 @@
-# VIGIL ML WALK-FORWARD BACKTEST & VALIDATION REPORT
+# SANKET ML WALK-FORWARD BACKTEST & VALIDATION REPORT
 **Evaluation Horizon:** 12-Month Forward Overrun Forecasting (`overrun_composite_12m`)  
 **Validation Methodology:** Chronological Expanding Window Walk-Forward Evaluation  
 **Artifact References:** `DATA/ml_predictions.parquet`, `DATA/backtest_results.parquet`, `DATA/model_metrics.json`, `DATA/feature_importance.csv`, `DATA/model_ablation_results.parquet`, `DATA/calibration_results.parquet`, `DATA/event_lead_times.parquet`  
@@ -7,7 +7,7 @@
 
 ## 1. Executive Summary & Headline Findings
 
-VIGIL ML Phase 1 and Phase 1.5 conducted an exhaustive, leakage-free walk-forward evaluation across **56,514 out-of-fold test observations** spanning 2020 through 2024. The primary objective was to determine whether kinematic trajectory features provide genuine early-warning capabilities over static status monitoring.
+SANKET ML Phase 1 and Phase 1.5 conducted an exhaustive, leakage-free walk-forward evaluation across **56,514 out-of-fold test observations** spanning 2020 through 2024. The primary objective was to determine whether kinematic trajectory features provide genuine early-warning capabilities over static status monitoring.
 
 ### Headline Benchmark Comparison (Global Out-of-Fold, N = 56,514)
 
@@ -17,12 +17,12 @@ VIGIL ML Phase 1 and Phase 1.5 conducted an exhaustive, leakage-free walk-forwar
 | **Baseline B** (Kinetic Heuristic) | 0.3393 | 0.4701 | 33.38% | 70.11% | 76.09% | 0.5981 | 1.0 mos |
 | **Model A** (Current State ML) | 0.6421 | 0.7584 | 80.74% | 16.65% | 2.16% | 0.1984 | 2.0 mos |
 | **Model B** (Trajectory Only ML) | 0.6022 | 0.7260 | 69.04% | 22.23% | 5.42% | 0.2017 | **7.0 MOS** |
-| **VIGIL LightGBM** ($\tau = 0.50$) | **0.6467** | **0.7639** | **81.26%** | **19.00%** | **2.38%** | **0.1926** | **3.0 mos** |
-| **VIGIL LightGBM** ($\tau = 0.30$) | **0.6467** | **0.7639** | **60.58%** | **59.98%** | **21.23%** | **0.1926** | **11.0 mos** |
+| **SANKET LightGBM** ($\tau = 0.50$) | **0.6467** | **0.7639** | **81.26%** | **19.00%** | **2.38%** | **0.1926** | **3.0 mos** |
+| **SANKET LightGBM** ($\tau = 0.30$) | **0.6467** | **0.7639** | **60.58%** | **59.98%** | **21.23%** | **0.1926** | **11.0 mos** |
 
 > [!IMPORTANT]
 > **Formal Model Claim:**  
-> VIGIL demonstrates out-of-fold predictive performance superior to the implemented baseline policies on the evaluated historical dataset. Reported feature importances reflect predictive information gain within gradient-boosted decision trees and must not be interpreted as causal determinants of project failure.
+> SANKET demonstrates out-of-fold predictive performance superior to the implemented baseline policies on the evaluated historical dataset. Reported feature importances reflect predictive information gain within gradient-boosted decision trees and must not be interpreted as causal determinants of project failure.
 
 ---
 
@@ -58,12 +58,12 @@ Fold 3: Full Historical Train -> Recent Epoch Test
 | **Event Prevalence** | 21.49% | 43.29% | 52.22% | **35.23%** |
 | **Baseline A PR-AUC** | 0.3038 | 0.5177 | 0.5519 | **0.4385** |
 | **Baseline B PR-AUC** | 0.2083 | 0.4211 | 0.5084 | **0.3393** |
-| **VIGIL LightGBM PR-AUC** | **0.5744** | **0.6816** | **0.5986** | **0.6467** |
-| **VIGIL LightGBM ROC-AUC**| **0.7404** | **0.7477** | **0.5599** | **0.7639** |
-| **VIGIL Precision ($\tau=0.5$)** | 89.12% | 74.80% | 93.11% | **81.26%** |
-| **VIGIL Recall ($\tau=0.5$)** | 28.07% | 22.11% | 5.12% | **19.00%** |
-| **VIGIL False Alert Rate** | 0.94% | 5.69% | 0.41% | **2.38%** |
-| **VIGIL Brier Score (Raw)** | 0.1345 | 0.2271 | 0.2638 | **0.1926** |
+| **SANKET LightGBM PR-AUC** | **0.5744** | **0.6816** | **0.5986** | **0.6467** |
+| **SANKET LightGBM ROC-AUC**| **0.7404** | **0.7477** | **0.5599** | **0.7639** |
+| **SANKET Precision ($\tau=0.5$)** | 89.12% | 74.80% | 93.11% | **81.26%** |
+| **SANKET Recall ($\tau=0.5$)** | 28.07% | 22.11% | 5.12% | **19.00%** |
+| **SANKET False Alert Rate** | 0.94% | 5.69% | 0.41% | **2.38%** |
+| **SANKET Brier Score (Raw)** | 0.1345 | 0.2271 | 0.2638 | **0.1926** |
 | **Platt Calibrated Brier** | 0.1302 | 0.2184 | 0.2510 | **0.1845** |
 | **Isotonic Calibrated Brier** | 0.1285 | 0.2160 | 0.2488 | **0.1824** |
 | **Event Median Lead Time** | 3.0 mos | 3.0 mos | 2.0 mos | **3.0 mos** |
@@ -105,7 +105,7 @@ Observed risk monotonically increases across predicted deciles from **9.4% in De
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **Model A (Current State Only)** | 10 | 0.6421 | 0.7584 | 80.74% | 16.65% | 2.16% | **2.0 months** |
 | **Model B (Trajectory Only)** | 15 | 0.6022 | 0.7260 | 69.04% | 22.23% | 5.42% | **7.0 MONTHS** |
-| **Model C (Full VIGIL)** | 25 | **0.6467** | **0.7639** | **81.26%** | **19.00%** | **2.38%** | **3.0 months** |
+| **Model C (Full SANKET)** | 25 | **0.6467** | **0.7639** | **81.26%** | **19.00%** | **2.38%** | **3.0 months** |
 
 **Scientific Takeaway:** Trajectory features alone detect distress **7.0 months in advance** (vs only 2.0 months for current state). The full model successfully combines trajectory lead time with current-state precision.
 
@@ -115,11 +115,11 @@ Observed risk monotonically increases across predicted deciles from **9.4% in De
 
 | Experiment | Features | PR-AUC | Precision | Recall | False Alert Rate | **Event Lead Time** |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
-| **Full VIGIL Model** | 25 | 0.6467 | 81.26% | 19.00% | 2.38% | 3.0 months |
+| **Full SANKET Model** | 25 | 0.6467 | 81.26% | 19.00% | 2.38% | 3.0 months |
 | **Without `cost_revision_ratio`** | 24 | **0.6427** | 67.39% | **32.62%** | 8.58% | **7.0 MONTHS** |
 | **Without any cost baseline/rev** | 23 | **0.6164** | 65.61% | 27.88% | 7.95% | **8.0 MONTHS** |
 
-**Conclusion:** VIGIL does not depend on administrative cost revisions. Removing `cost_revision_ratio` preserves PR-AUC (0.6427), increases recall to 32.6%, and extends event lead time to 7.0 months.
+**Conclusion:** SANKET does not depend on administrative cost revisions. Removing `cost_revision_ratio` preserves PR-AUC (0.6427), increases recall to 32.6%, and extends event lead time to 7.0 months.
 
 ---
 

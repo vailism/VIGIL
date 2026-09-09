@@ -14,10 +14,10 @@ MANDATORY TEMPORAL LEAKAGE TEST SUITE FOR VIGIL:
 import pytest
 import pandas as pd
 import numpy as np
-from vigil.timeline import build_project_timelines
-from vigil.trajectory import compute_trajectories
-from vigil.targets import compute_targets
-from vigil.features import assemble_model_dataset
+from sanket.timeline import build_project_timelines
+from sanket.trajectory import compute_trajectories
+from sanket.targets import compute_targets
+from sanket.features import assemble_model_dataset
 
 def test_leakage_1_future_cost_revision_does_not_affect_features():
     """

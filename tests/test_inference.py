@@ -1,7 +1,7 @@
 """
 tests/test_inference.py
 
-Unit tests for vigil.inference:
+Unit tests for sanket.inference:
 - Risk tier mapping matches validated operational thresholds.
 - Point-in-time scoring determinism.
 - Deterministic "WHY?" explanation generation using TreeSHAP values.
@@ -13,7 +13,7 @@ import pytest
 import numpy as np
 import pandas as pd
 
-from vigil.inference import (
+from sanket.inference import (
     load_inference_engine,
     get_risk_tier,
     generate_feature_explanation,

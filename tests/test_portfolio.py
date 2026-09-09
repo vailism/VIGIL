@@ -18,14 +18,14 @@ import pytest
 import numpy as np
 from fastapi.testclient import TestClient
 
-from vigil.portfolio import (
+from sanket.portfolio import (
     get_portfolio,
     is_macro_summary_artifact,
     is_genuine_project,
     format_inr_currency
 )
-from vigil.api import app
-from vigil.replay import get_project_replay
+from sanket.api import app
+from sanket.replay import get_project_replay
 
 
 @pytest.fixture(scope="module")

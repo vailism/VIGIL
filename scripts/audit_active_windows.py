@@ -6,7 +6,7 @@ Compare portfolio under three active window definitions:
 2. latest >= 2024-07 (past 9 months)
 3. latest >= 2025-01 (current calendar year / past 3 months)
 """
-from vigil.portfolio import get_portfolio, format_inr_currency
+from sanket.portfolio import get_portfolio, format_inr_currency
 import pandas as pd
 import numpy as np
 
@@ -29,7 +29,7 @@ raw_probs = engine["model"].predict_proba(X)[:, 1]
 cal_probs = engine["calibrator"].predict(raw_probs)
 genuine_df["calibrated_risk"] = np.round(cal_probs, 4)
 
-from vigil.inference import get_risk_tier
+from sanket.inference import get_risk_tier
 genuine_df["risk_tier"] = [get_risk_tier(x) for x in cal_probs]
 
 cbase = pd.to_numeric(genuine_df["C_base"], errors="coerce").fillna(0).round(2)

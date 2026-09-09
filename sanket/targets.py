@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-vigil/targets.py
+sanket/targets.py
 
 Phase 4: Leakage-Safe Target Generator for VIGIL.
 Implements the formal methodology defined in TARGET_DEFINITION.md.

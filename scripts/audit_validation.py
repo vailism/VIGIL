@@ -48,7 +48,7 @@ from sklearn.metrics import (
 )
 import lightgbm as lgb
 
-from vigil.model import (
+from sanket.model import (
     load_model_config,
     train_lgbm_model,
     predict_lgbm_probs,

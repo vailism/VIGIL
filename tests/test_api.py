@@ -18,9 +18,9 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 
-from vigil.api import app, sanitize_for_json
-from vigil.inference import load_inference_engine, predict_point_in_time
-from vigil.replay import get_project_replay
+from sanket.api import app, sanitize_for_json
+from sanket.inference import load_inference_engine, predict_point_in_time
+from sanket.replay import get_project_replay
 
 
 @pytest.fixture(scope="module")

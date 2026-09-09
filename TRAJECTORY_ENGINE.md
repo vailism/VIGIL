@@ -1,8 +1,8 @@
-# VIGIL Trajectory Engine & Feature Architecture
+# SANKET Trajectory Engine & Feature Architecture
 
 **Document:** `TRAJECTORY_ENGINE.md`  
 **Version:** 1.0  
-**Pipeline Modules:** `vigil.timeline`, `vigil.trajectory`, `vigil.targets`, `vigil.features`  
+**Pipeline Modules:** `sanket.timeline`, `sanket.trajectory`, `sanket.targets`, `sanket.features`  
 **Configuration:** `configs/trajectory.yaml`  
 **Dataset Grain:** Strict Point-in-Time Project-Month (`ONE ROW = ONE UNIQUE PROJECT + ONE REPORTING MONTH`)
 
@@ -10,7 +10,7 @@
 
 ## 1. System Overview
 
-The VIGIL Trajectory Engine converts raw canonical longitudinal observations into an auditable, leakage-safe temporal feature matrix. 
+The SANKET Trajectory Engine converts raw canonical longitudinal observations into an auditable, leakage-safe temporal feature matrix. 
 
 Unlike conventional static infrastructure dashboards that merely ask *"What is the current project status?"*, the Trajectory Engine models the **dynamic rate of change** across expenditure, physical construction, and schedule commitments to answer:
 > *"Is the project's momentum accelerating, stalling, or decoupling from expenditure, and will it experience formal cost escalation or schedule slippage over the next 6 to 12 months?"*
@@ -19,7 +19,7 @@ Unlike conventional static infrastructure dashboards that merely ask *"What is t
  Canonical Records (DATA/project_monthly.csv)
                       │
                       ▼
-            vigil/timeline.py
+            sanket/timeline.py
          (DATA/project_timelines.parquet)
           ├── Chronological sorting
           ├── Gap calculation
@@ -27,7 +27,7 @@ Unlike conventional static infrastructure dashboards that merely ask *"What is t
                       │
           ┌───────────┴───────────┐
           ▼                       ▼
-  vigil/trajectory.py       vigil/targets.py
+  sanket/trajectory.py       sanket/targets.py
   (Project Features)        (Forward Outcomes)
   ├── Velocities (1m, 3m)   ├── Cost overrun (6m, 12m)
   ├── Accelerations         ├── Schedule overrun (6m, 12m)
@@ -37,7 +37,7 @@ Unlike conventional static infrastructure dashboards that merely ask *"What is t
           │                       │
           └───────────┬───────────┘
                       ▼
-              vigil/features.py
+              sanket/features.py
          (DATA/model_dataset.parquet)
 ```
 
@@ -90,7 +90,7 @@ $$\text{EWMA}_{V}(t) = \alpha \cdot V_{\text{fin\_1m}}(t) + (1 - \alpha) \cdot \
 
 Public infrastructure velocity varies substantially by sector (e.g. tunneling in Railways vs. pipeline laying in Petroleum vs. surface paving in Highways) and project scale.
 
-To avoid universal static thresholds, VIGIL normalizes velocity against a project's dynamic peer cohort:
+To avoid universal static thresholds, SANKET normalizes velocity against a project's dynamic peer cohort:
 * **Stratification Dimensions:**
   1. `sector` (e.g. Railways, Road Transport, Power, Coal, Petroleum, etc.)
   2. `scale_bucket` (Small: $< ₹150\text{ cr}$, Major: $₹150–1,000\text{ cr}$, Mega: $\ge ₹1,000\text{ cr}$)
@@ -103,7 +103,7 @@ To avoid universal static thresholds, VIGIL normalizes velocity against a projec
 
 ## 4. Physical Progress & Decoupling (2022–2025 Modern Cohort)
 
-Where physical progress percentage is reported in modern OCMS reports, VIGIL activates enhanced physical trajectory signals without imputing missing historical data:
+Where physical progress percentage is reported in modern OCMS reports, SANKET activates enhanced physical trajectory signals without imputing missing historical data:
 * $V_{\text{phys\_1m}}(t) = \text{physical\_progress}(t) - \text{physical\_progress}(t-1)$
 * $A_{\text{phys}}(t) = V_{\text{phys\_1m}}(t) - V_{\text{phys\_1m}}(t-1)$
 * **Financial-Physical Decoupling Gap:**
@@ -114,7 +114,7 @@ Where physical progress percentage is reported in modern OCMS reports, VIGIL act
 
 ## 5. Interpretable Trajectory Risk Score (0–100)
 
-Before deploying black-box machine learning, VIGIL provides an operational, fully auditable heuristic risk score:
+Before deploying black-box machine learning, SANKET provides an operational, fully auditable heuristic risk score:
 
 ### 5.1 Component Signals (Normalized $[0.0, 1.0]$)
 1. **`score_stalled_velocity`:** Penalizes progress velocity $\le 0.0\%$ ($\text{clip}(1.0 - V/3.0, 0, 1)$).

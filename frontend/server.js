@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Proxy all /api routes (except /api/assistant which is handled locally below)
-// and /health route to the VIGIL-main FastAPI backend
+// and /health route to the SANKET-main FastAPI backend
 const apiProxy = createProxyMiddleware({
   target: 'http://localhost:8000',
   changeOrigin: true,
@@ -135,7 +135,7 @@ app.get('*', (_req, res) => {
 
 app.listen(PORT, () => {
   console.log(`\n  ╔══════════════════════════════════════════╗`);
-  console.log(`  ║  VIGIL // RISKSYS  —  Server Online       ║`);
+  console.log(`  ║  SANKET // RISKSYS  —  Server Online       ║`);
   console.log(`  ║  http://localhost:${PORT}                    ║`);
   console.log(`  ╚══════════════════════════════════════════╝\n`);
 });

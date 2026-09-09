@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════
-   VIGIL // RISKSYS  —  Application Controller
+   SANKET // RISKSYS  —  Application Controller
    ═══════════════════════════════════════════════════════════ */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -14,14 +14,14 @@ document.addEventListener('DOMContentLoaded', () => {
       // Fetch live data
       const [summary, projectsRes] = await Promise.all([
         API.getDashboardSummary(),
-        API.getProjects('', '', '', 5000, 0)
+        API.getProjects('', '', '', 500, 0)
       ]);
 
-      // Hydrate VIGIL_DATA portfolio summary
-      VIGIL_DATA.hydrateFromAPI(summary, null);
+      // Hydrate SANKET_DATA portfolio summary
+      SANKET_DATA.hydrateFromAPI(summary, null);
 
       // Map all 5000 projects
-      VIGIL_DATA.projects = (projectsRes.projects || []).map(p => ({
+      SANKET_DATA.projects = (projectsRes.projects || []).map(p => ({
         id: p.project_id,
         name: p.project_name,
         score: Math.round(p.latest_risk_tier === 'NORMAL' ? 0 : (p.latest_risk || 0) * 100),
@@ -52,8 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Render charts (uses live data if available, else mock)
-    Charts.renderSparkline('sparkline-total', VIGIL_DATA.sparkline, '#10b981');
-    Charts.renderTrajectoryChart('trajectoryChart', 'chartXLabels', VIGIL_DATA.trajectoryChart);
+    Charts.renderSparkline('sparkline-total', SANKET_DATA.sparkline, '#10b981');
+    Charts.renderTrajectoryChart('trajectoryChart', 'chartXLabels', SANKET_DATA.trajectoryChart);
 
     // Render project cards
     renderProjectCards();
@@ -69,44 +69,44 @@ document.addEventListener('DOMContentLoaded', () => {
     // Header updates
     document.getElementById('connectionDot').className = 'status-dot status-green';
     document.getElementById('connectionText').innerHTML = 'System<br/>Operational';
-    document.getElementById('headerTelemetryText').innerHTML = `Live Telemetry &bull; M${VIGIL_DATA.portfolio.latestMonth || '--'}`;
+    document.getElementById('headerTelemetryText').innerHTML = `Live Telemetry &bull; M${SANKET_DATA.portfolio.latestMonth || '--'}`;
 
     const activeRisksBadge = document.getElementById('activeRisksBadge');
-    if (activeRisksBadge) activeRisksBadge.innerHTML = `${VIGIL_DATA.portfolio.highRiskExcursions || '--'} Active<br/>Risks`;
+    if (activeRisksBadge) activeRisksBadge.innerHTML = `${SANKET_DATA.portfolio.highRiskExcursions || '--'} Active<br/>Risks`;
 
     const totalMonitoredValue = document.getElementById('valTotalMonitored');
-    if (totalMonitoredValue) totalMonitoredValue.textContent = VIGIL_DATA.portfolio.totalMonitored.toLocaleString();
+    if (totalMonitoredValue) totalMonitoredValue.textContent = SANKET_DATA.portfolio.totalMonitored.toLocaleString();
 
     const yoyChange = document.getElementById('valYoyChange');
-    if (yoyChange) yoyChange.textContent = `${VIGIL_DATA.portfolio.yoyChange}% YoY ▲`;
+    if (yoyChange) yoyChange.textContent = `${SANKET_DATA.portfolio.yoyChange}% YoY ▲`;
 
     // Update "High Risk Excursions" (card 1)
     const excursionsValue = document.getElementById('valHighRisk');
-    if (excursionsValue) excursionsValue.textContent = VIGIL_DATA.portfolio.highRiskExcursions;
+    if (excursionsValue) excursionsValue.textContent = SANKET_DATA.portfolio.highRiskExcursions;
 
     const highRiskTotal = document.getElementById('valHighRiskTotal');
-    if (highRiskTotal) highRiskTotal.textContent = `/ ${VIGIL_DATA.portfolio.totalMonitored.toLocaleString()}`;
+    if (highRiskTotal) highRiskTotal.textContent = `/ ${SANKET_DATA.portfolio.totalMonitored.toLocaleString()}`;
 
     const riskPct = document.getElementById('valRiskPct');
-    if (riskPct) riskPct.textContent = `${VIGIL_DATA.portfolio.riskPct}% Risk`;
+    if (riskPct) riskPct.textContent = `${SANKET_DATA.portfolio.riskPct}% Risk`;
 
     // Risk Segments
-    const totalCount = VIGIL_DATA.portfolio.totalMonitored || 1;
-    const pNorm = (VIGIL_DATA.portfolio.riskSegments.normal / totalCount) * 100;
-    const pElev = (VIGIL_DATA.portfolio.riskSegments.elevated / totalCount) * 100;
-    const pDiv = (VIGIL_DATA.portfolio.riskSegments.divergent / totalCount) * 100;
+    const totalCount = SANKET_DATA.portfolio.totalMonitored || 1;
+    const pNorm = (SANKET_DATA.portfolio.riskSegments.normal / totalCount) * 100;
+    const pElev = (SANKET_DATA.portfolio.riskSegments.elevated / totalCount) * 100;
+    const pDiv = (SANKET_DATA.portfolio.riskSegments.divergent / totalCount) * 100;
     
     if (document.getElementById('barSegNormal')) document.getElementById('barSegNormal').style.width = `${pNorm}%`;
     if (document.getElementById('barSegElevated')) document.getElementById('barSegElevated').style.width = `${pElev}%`;
     if (document.getElementById('barSegDivergent')) document.getElementById('barSegDivergent').style.width = `${pDiv}%`;
-    if (document.getElementById('valLegendDivergent')) document.getElementById('valLegendDivergent').textContent = VIGIL_DATA.portfolio.highRiskExcursions;
+    if (document.getElementById('valLegendDivergent')) document.getElementById('valLegendDivergent').textContent = SANKET_DATA.portfolio.highRiskExcursions;
 
     // Update "Value at Immediate Risk" (card 2)
     const varValue = document.getElementById('valImmediateRisk');
-    if (varValue) varValue.textContent = `₹${VIGIL_DATA.portfolio.valueAtRisk.toLocaleString()}`;
+    if (varValue) varValue.textContent = `₹${SANKET_DATA.portfolio.valueAtRisk.toLocaleString()}`;
 
     const riskPortPct = document.getElementById('valRiskPortfolioPct');
-    if (riskPortPct) riskPortPct.textContent = `${VIGIL_DATA.portfolio.riskPortfolioPct}% Port.`;
+    if (riskPortPct) riskPortPct.textContent = `${SANKET_DATA.portfolio.riskPortfolioPct}% Port.`;
 
     // Risk Breakdown
     const breakdownList = document.getElementById('riskBreakdownList');
@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (breakdownList && barMulti) {
       breakdownList.innerHTML = '';
       barMulti.innerHTML = '';
-      const topSectors = VIGIL_DATA.portfolio.sectorBreakdown.slice(0, 3);
+      const topSectors = SANKET_DATA.portfolio.sectorBreakdown.slice(0, 3);
       const totalTop = topSectors.reduce((acc, s) => acc + s.value, 0) || 1;
       
       topSectors.forEach(sector => {
@@ -130,14 +130,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Update "Median Warning Lead" (card 3)
     const leadValue = document.getElementById('valMedianLead');
-    if (leadValue) leadValue.textContent = VIGIL_DATA.portfolio.medianWarningLead;
+    if (leadValue) leadValue.textContent = SANKET_DATA.portfolio.medianWarningLead;
 
     const modelCal = document.getElementById('valModelCalibration');
-    if (modelCal) modelCal.textContent = `${VIGIL_DATA.portfolio.modelCalibration}% Accuracy`;
+    if (modelCal) modelCal.textContent = `${SANKET_DATA.portfolio.modelCalibration}% Accuracy`;
 
     // Active Risks Badge
     const badgeRed = document.querySelector('.badge-red');
-    if (badgeRed) badgeRed.textContent = `${VIGIL_DATA.portfolio.highRiskExcursions} Active Risks`;
+    if (badgeRed) badgeRed.textContent = `${SANKET_DATA.portfolio.highRiskExcursions} Active Risks`;
   }
 
   function renderProjectCards() {
@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const query = searchInput ? searchInput.value.toLowerCase() : '';
     const riskFilter = filterSelect ? filterSelect.value : 'ALL';
 
-    const filteredProjects = VIGIL_DATA.projects.filter(p => {
+    const filteredProjects = SANKET_DATA.projects.filter(p => {
       const matchesQuery = !query || p.name.toLowerCase().includes(query) || p.location.toLowerCase().includes(query) || p.ministry.toLowerCase().includes(query);
       const matchesRisk = riskFilter === 'ALL' || p.severity === riskFilter;
       return matchesQuery && matchesRisk;
@@ -367,7 +367,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (projectScoreEl) projectScoreEl.textContent = `${Math.round((detail.latest_prediction?.raw_prob || 0) * 100)}/100`;
 
     // Update AI Assistant Context
-    VIGIL_DATA.selectedProject = {
+    SANKET_DATA.selectedProject = {
       name: detail.project_name || '--',
       score: Math.round((detail.latest_prediction?.raw_prob || 0) * 100),
       scoreMax: 100,
@@ -417,17 +417,17 @@ document.addEventListener('DOMContentLoaded', () => {
       // Pick up to 6 points for the chart
       const points = tl.length > 6 ? tl.filter((_, i) => i % Math.ceil(tl.length / 5) === 0 || i === tl.length - 1) : tl;
 
-      VIGIL_DATA.trajectoryChart.labels = points.map(p => `M${p.observation_number || 0}`);
-      VIGIL_DATA.trajectoryChart.target = points.map(p => Math.min(100, ((p.observation_number || 1) / (detail.total_observations || 1)) * 100)); // Ideal linear progress
-      VIGIL_DATA.trajectoryChart.contractorReport = points.map(p => p.financial_progress || 0);
-      VIGIL_DATA.trajectoryChart.vigilTelemetry = points.map(p => (p.financial_progress || 0) * (1 - (p.pred_prob || 0)));
+      SANKET_DATA.trajectoryChart.labels = points.map(p => `M${p.observation_number || 0}`);
+      SANKET_DATA.trajectoryChart.target = points.map(p => Math.min(100, ((p.observation_number || 1) / (detail.total_observations || 1)) * 100)); // Ideal linear progress
+      SANKET_DATA.trajectoryChart.contractorReport = points.map(p => p.financial_progress || 0);
+      SANKET_DATA.trajectoryChart.sanketTelemetry = points.map(p => (p.financial_progress || 0) * (1 - (p.pred_prob || 0)));
 
-      VIGIL_DATA.trajectoryChart.anomalyPoint = null;
-      VIGIL_DATA.trajectoryChart.discrepancyGap = null;
+      SANKET_DATA.trajectoryChart.anomalyPoint = null;
+      SANKET_DATA.trajectoryChart.discrepancyGap = null;
 
       const chartEl = document.getElementById('trajectoryChart');
       if (chartEl) chartEl.innerHTML = ''; // clear loading
-      Charts.renderTrajectoryChart('trajectoryChart', 'chartXLabels', VIGIL_DATA.trajectoryChart);
+      Charts.renderTrajectoryChart('trajectoryChart', 'chartXLabels', SANKET_DATA.trajectoryChart);
     } else {
       const chartEl = document.getElementById('trajectoryChart');
       if (chartEl) chartEl.innerHTML = '<div style="color:#94a3b8; text-align:center; padding: 40px; font-size: 13px;">No timeline data available for this project.</div>';
@@ -600,8 +600,8 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-      Charts.renderSparkline('sparkline-total', VIGIL_DATA.sparkline, '#10b981');
-      Charts.renderTrajectoryChart('trajectoryChart', 'chartXLabels', VIGIL_DATA.trajectoryChart);
+      Charts.renderSparkline('sparkline-total', SANKET_DATA.sparkline, '#10b981');
+      Charts.renderTrajectoryChart('trajectoryChart', 'chartXLabels', SANKET_DATA.trajectoryChart);
     }, 200);
   });
 
@@ -685,8 +685,8 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
           if (!term) {
-            const projectsRes = await API.getProjects('', '', '', 5000, 0);
-            VIGIL_DATA.projects = (projectsRes.projects || []).map(p => ({
+            const projectsRes = await API.getProjects('', '', '', 500, 0);
+            SANKET_DATA.projects = (projectsRes.projects || []).map(p => ({
               id: p.project_id,
               name: p.project_name,
               score: Math.round(p.latest_risk_tier === 'NORMAL' ? 0 : (p.latest_risk || 0) * 100),
@@ -703,7 +703,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
           
           const results = await API.getProjects(term);
-          VIGIL_DATA.projects = (results.projects || []).map(p => ({
+          SANKET_DATA.projects = (results.projects || []).map(p => ({
             id: p.project_id,
             name: p.project_name,
             score: Math.round(p.latest_risk_tier === 'NORMAL' ? 0 : (p.latest_risk || 0) * 100),
@@ -718,7 +718,7 @@ document.addEventListener('DOMContentLoaded', () => {
           
           renderProjectCards();
           
-          if (VIGIL_DATA.projects.length === 0 && listEl) {
+          if (SANKET_DATA.projects.length === 0 && listEl) {
             listEl.innerHTML = '<div style="color:#94a3b8; text-align:center; padding:20px; font-size:13px;">No projects found.</div>';
           } else {
             const firstProject = document.querySelector('.project-card');
@@ -747,7 +747,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const replay = window.lastReplay;
       if (!detail) return;
 
-      let csv = 'Month,Target_CBase,Financial_Progress,Vigil_Telemetry_Risk,Schedule_Deviation\\n';
+      let csv = 'Month,Target_CBase,Financial_Progress,Sanket_Telemetry_Risk,Schedule_Deviation\\n';
       const tl = replay?.timeline || [];
       tl.forEach(p => {
         const t = (p.C_base || 0).toFixed(2);

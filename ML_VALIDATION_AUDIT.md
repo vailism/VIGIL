@@ -1,4 +1,4 @@
-# VIGIL ML PHASE 1.5 — VALIDATION AUDIT REPORT
+# SANKET ML PHASE 1.5 — VALIDATION AUDIT REPORT
 **Evaluation Scope:** Methodological, Calibration, Temporal, Ablation, and Matched Operating-Point Verification  
 **Date:** September 2026  
 **Artifact References:** `DATA/model_ablation_results.parquet`, `DATA/calibration_results.parquet`, `DATA/event_lead_times.parquet`, `DATA/matched_operating_points.parquet`, `DATA/fold3_threshold_audit.parquet`  
@@ -7,7 +7,7 @@
 
 ## 1. Executive Summary
 
-This validation audit rigorously stress-tests the predictive validity of the VIGIL Phase 1 LightGBM baseline model. Rather than optimizing benchmark scores, this investigation determines:
+This validation audit rigorously stress-tests the predictive validity of the SANKET Phase 1 LightGBM baseline model. Rather than optimizing benchmark scores, this investigation determines:
 1. Whether early-warning lead times hold at the **event level** (collapsing multiple repeated alerts per project episode, strictly eliminating artificial $t+12$ fallbacks).
 2. How well raw predicted probabilities match **observed failure frequencies** (reliability diagrams, Platt and Isotonic calibration).
 3. Whether the walk-forward folds exhibit any temporal or target realization leakage.
@@ -19,7 +19,7 @@ This validation audit rigorously stress-tests the predictive validity of the VIG
 
 > [!IMPORTANT]
 > **Formal Model Claim:**  
-> "VIGIL demonstrates out-of-fold predictive performance superior to the implemented baseline policies on the evaluated historical dataset. Reported feature importances reflect predictive information gain within the gradient-boosted decision trees and must not be interpreted as causal determinants of project failure."
+> "SANKET demonstrates out-of-fold predictive performance superior to the implemented baseline policies on the evaluated historical dataset. Reported feature importances reflect predictive information gain within the gradient-boosted decision trees and must not be interpreted as causal determinants of project failure."
 
 ---
 
@@ -29,7 +29,7 @@ In longitudinal monitoring, a deteriorating project often triggers alerts across
 
 We implemented an **event-level lead time calculation**:
 - Group alerts by `(project_id, event_month)`.
-- For each distinct deterioration event at month $t^*$, identify the **FIRST qualifying VIGIL alert month** $t_{\text{first}} < t^*$.
+- For each distinct deterioration event at month $t^*$, identify the **FIRST qualifying SANKET alert month** $t_{\text{first}} < t^*$.
 - Compute: $\text{lead\_time} = t^* - t_{\text{first}}$.
 - Each event is counted exactly once.
 - **Sanity Verification:**
@@ -123,13 +123,13 @@ Across the 56,514 test observations covering 6,641 projects:
 - **Strict 20% Project-Held-Out Split:**
   - Performance on 956 completely withheld projects: **PR-AUC = 0.6720**, ROC-AUC = 0.6887, Precision = 66.68%, Recall = 41.45%.
 
-**Conclusion:** The model achieves equivalent PR-AUC (0.6720–0.6799) on completely unseen infrastructure projects, confirming that VIGIL learns structural trajectory patterns rather than memorizing individual project IDs.
+**Conclusion:** The model achieves equivalent PR-AUC (0.6720–0.6799) on completely unseen infrastructure projects, confirming that SANKET learns structural trajectory patterns rather than memorizing individual project IDs.
 
 ---
 
 ## 6. Target Definition Sanity Check
 
-We audited `vigil/targets.py` to confirm whether minor schedule adjustments trigger false overruns:
+We audited `sanket/targets.py` to confirm whether minor schedule adjustments trigger false overruns:
 - **Formal Thresholds:**
   - 6-month forward horizon: `delay_threshold_6m = 3.0 months`
   - 12-month forward horizon: `delay_threshold_12m = 6.0 months`
@@ -166,7 +166,7 @@ Global composite 12m prevalence is 26.92%, but surges to **52.22% in Fold 3 (202
 
 ## 8. Matched Operating-Point Comparison
 
-To evaluate whether trajectory features genuinely provide earlier warning at comparable operational burden, we evaluated Model A (Current-State Only), Model B (Trajectory Only), and Model C (Full VIGIL) at **matched operating points**.
+To evaluate whether trajectory features genuinely provide earlier warning at comparable operational burden, we evaluated Model A (Current-State Only), Model B (Trajectory Only), and Model C (Full SANKET) at **matched operating points**.
 
 ### 8.1 Matched by Portfolio Alert Rate (% Observations Alerted)
 
@@ -174,13 +174,13 @@ To evaluate whether trajectory features genuinely provide earlier warning at com
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **Alerts ~8%** | Model A (Current State) | 0.466 | 78.59% | 17.97% | 2.66% | 8.06% | **2.0 months** | 3.64 mos |
 | | Model B (Trajectory Only) | 0.525 | 74.27% | 17.25% | 3.25% | 8.18% | **4.0 MONTHS** | **4.64 mos** |
-| | Model C (Full VIGIL) | 0.507 | **81.74%** | **18.35%** | **2.23%** | 7.91% | **3.0 months** | 3.81 mos |
+| | Model C (Full SANKET) | 0.507 | **81.74%** | **18.35%** | **2.23%** | 7.91% | **3.0 months** | 3.81 mos |
 | **Alerts ~15%** | Model A (Current State) | 0.371 | 68.09% | 28.35% | 7.23% | 14.67% | 4.0 months | 4.90 mos |
 | | Model B (Trajectory Only) | 0.475 | 65.08% | 27.96% | 8.16% | 15.13% | **5.0 months** | **5.19 mos** |
-| | Model C (Full VIGIL) | 0.439 | **69.26%** | **30.09%** | **7.26%** | 15.30% | 4.0 months | 4.79 mos |
+| | Model C (Full SANKET) | 0.439 | **69.26%** | **30.09%** | **7.26%** | 15.30% | 4.0 months | 4.79 mos |
 | **Alerts ~25%** | Model A (Current State) | 0.321 | 62.80% | 44.98% | 14.49% | 25.23% | 5.0 months | 5.62 mos |
 | | Model B (Trajectory Only) | 0.380 | 59.13% | 42.22% | 15.87% | 25.15% | **6.0 months** | **5.76 mos** |
-| | Model C (Full VIGIL) | 0.371 | **63.92%** | **45.58%** | **13.99%** | 25.12% | 5.0 months | 5.37 mos |
+| | Model C (Full SANKET) | 0.371 | **63.92%** | **45.58%** | **13.99%** | 25.12% | 5.0 months | 5.37 mos |
 
 ### 8.2 Matched by False Alert Rate (FAR)
 
@@ -188,16 +188,16 @@ To evaluate whether trajectory features genuinely provide earlier warning at com
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **FAR ~2.5%** | Model A (Current State) | 0.475 | 79.41% | 17.67% | 2.49% | 7.84% | **2.0 months** | 3.57 mos |
 | | Model B (Trajectory Only) | 0.538 | 77.00% | 14.93% | 2.43% | 6.83% | **3.0 months** | **4.39 mos** |
-| | Model C (Full VIGIL) | 0.493 | **80.65%** | **19.58%** | 2.55% | 8.55% | **3.0 months** | 3.94 mos |
+| | Model C (Full SANKET) | 0.493 | **80.65%** | **19.58%** | 2.55% | 8.55% | **3.0 months** | 3.94 mos |
 | **FAR ~5.0%** | Model A (Current State) | 0.389 | 72.50% | 24.49% | 5.05% | 11.90% | 3.0 months | 4.56 mos |
 | | Model B (Trajectory Only) | 0.502 | 69.66% | 21.64% | 5.12% | 10.94% | **4.0 months** | **4.92 mos** |
-| | Model C (Full VIGIL) | 0.462 | **73.79%** | **25.21%** | 4.87% | 12.04% | 3.0 months | 4.50 mos |
+| | Model C (Full SANKET) | 0.462 | **73.79%** | **25.21%** | 4.87% | 12.04% | 3.0 months | 4.50 mos |
 | **FAR ~10.0%** | Model A (Current State) | 0.348 | 65.96% | 36.52% | 10.25% | 19.50% | 5.0 months | 5.37 mos |
 | | Model B (Trajectory Only) | 0.457 | 63.09% | 31.41% | 10.00% | 17.54% | 5.0 months | 5.35 mos |
-| | Model C (Full VIGIL) | 0.412 | **66.61%** | **36.44%** | 9.93% | 19.27% | 4.0 months | 5.04 mos |
+| | Model C (Full SANKET) | 0.412 | **66.61%** | **36.44%** | 9.93% | 19.27% | 4.0 months | 5.04 mos |
 
 ### Key Matched Comparison Finding:
-At matched alert burden (~8% of portfolio alerted), Trajectory features (Model B) deliver **double the median lead time** (4.0 vs 2.0 months) and **+1.0 month longer mean lead time** (4.64 vs 3.64 months) compared to Current-State monitoring. When combined, Full VIGIL (Model C) maintains the highest precision (81.74%) with the lowest false alarm rate (2.23%).
+At matched alert burden (~8% of portfolio alerted), Trajectory features (Model B) deliver **double the median lead time** (4.0 vs 2.0 months) and **+1.0 month longer mean lead time** (4.64 vs 3.64 months) compared to Current-State monitoring. When combined, Full SANKET (Model C) maintains the highest precision (81.74%) with the lowest false alarm rate (2.23%).
 
 ---
 
@@ -231,13 +231,13 @@ Operating thresholds are defined by explicit administrative tradeoffs:
 
 ---
 
-## 11. Final Defensible VIGIL Claim
+## 11. Final Defensible SANKET Claim
 
 The matched operating-point results support the following statement:
 
-> **"VIGIL's trajectory signals identify deteriorating infrastructure projects earlier than current-state monitoring while maintaining a practical false-alert burden."**
+> **"SANKET's trajectory signals identify deteriorating infrastructure projects earlier than current-state monitoring while maintaining a practical false-alert burden."**
 
 ### Empirical Quantification:
 1. **Lead-Time Superiority at Equal Alert Burden:** At an 8% portfolio alert budget, trajectory features provide **4.0 months** median lead time (mean: **4.64 months**) compared to **2.0 months** (mean: **3.64 months**) for current-state metrics (+1.0 month mean advantage; double the median lead time).
-2. **False-Alert Suppression:** At matched 2.5% false alert burden, Full VIGIL achieves **80.65% precision** with a **3.0 to 3.94 month** advance warning runway.
+2. **False-Alert Suppression:** At matched 2.5% false alert burden, Full SANKET achieves **80.65% precision** with a **3.0 to 3.94 month** advance warning runway.
 3. **Earlier Signal Detection:** Trajectory features alone achieve **7.0 months** of advance notice before official failure, whereas current-state indicators only trigger when failure has already materialized in accumulated delay or budget exhaustion.

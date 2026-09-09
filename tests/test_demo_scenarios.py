@@ -11,8 +11,8 @@ import os
 import pytest
 from fastapi.testclient import TestClient
 
-from vigil import monitoring, demo_scenarios
-from vigil.api import app
+from sanket import monitoring, demo_scenarios
+from sanket.api import app
 
 
 @pytest.fixture
