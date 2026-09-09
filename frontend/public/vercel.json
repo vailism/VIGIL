@@ -3,7 +3,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://sanket-api.onrender.com/api/:path*"
+      "destination": "https://vigil-kou0.onrender.com/api/:path*"
     }
   ]
 }
