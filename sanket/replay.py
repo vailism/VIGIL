@@ -56,10 +56,10 @@ def replay_project_from_dataframe(
     p_df = df_proj.sort_values(by="reporting_month", ascending=True).reset_index(drop=True).copy()
 
     pid = str(p_df["project_id"].iloc[0])
-    pname = str(p_df["project_name"].iloc[0]) if "project_name" in p_df.columns else pid
-    sector = str(p_df["sector"].iloc[0]) if "sector" in p_df.columns else (str(p_df["sector_clean"].iloc[0]) if "sector_clean" in p_df.columns else "UNKNOWN")
-    ministry = str(p_df["ministry"].iloc[0]) if "ministry" in p_df.columns else "UNKNOWN"
-    state = str(p_df["state"].iloc[0]) if "state" in p_df.columns else "UNKNOWN"
+    pname = str(p_df["project_name"].iloc[0]) if "project_name" in p_df.columns and pd.notna(p_df["project_name"].iloc[0]) else pid
+    sector = str(p_df["sector"].iloc[0]) if "sector" in p_df.columns and pd.notna(p_df["sector"].iloc[0]) else (str(p_df["sector_clean"].iloc[0]) if "sector_clean" in p_df.columns and pd.notna(p_df["sector_clean"].iloc[0]) else "OTHER")
+    ministry = str(p_df["ministry"].iloc[0]) if "ministry" in p_df.columns and pd.notna(p_df["ministry"].iloc[0]) else "—"
+    state = str(p_df["state"].iloc[0]) if "state" in p_df.columns and pd.notna(p_df["state"].iloc[0]) else "—"
     approved_cost = float(pd.to_numeric(p_df["approved_cost"], errors="coerce").fillna(0).iloc[0]) if "approved_cost" in p_df.columns else 0.0
 
     n_obs = len(p_df)

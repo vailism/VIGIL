@@ -482,7 +482,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div style="width: 12px; height: 12px; border-radius: 50%; background: ${finColor}; box-shadow: 0 0 8px ${finColor}80;"></div>
             <div>
               <div style="font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase;">Fin. Progress</div>
-              <div style="font-size: 14px; color: #0f172a; font-weight: 800; font-family: 'JetBrains Mono', monospace;">${finProg.toFixed(1)}%</div>
+              <div style="font-size: 14px; color: #0f172a; font-weight: 800; font-family: 'JetBrains Mono', monospace;">${trajMetrics.financial_progress != null ? finProg.toFixed(1) + '%' : '--'}</div>
             </div>
           </div>
         </div>
@@ -491,9 +491,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Trajectory Kinematics
     const getKinematicMeter = (val, colorClass) => {
-      const v = val || 0;
-      const height = Math.min(100, Math.abs(v) * 10);
-      const colorOverride = v < 0 ? 'background: #ef4444;' : '';
+      if (val === null || val === undefined) {
+        return `<div class="sensor-meter"><div class="meter-track"><div class="meter-fill" style="height:0%; background:transparent"></div></div><span class="meter-val" style="font-size:11px; color:#64748b;">--</span></div>`;
+      }
+      const v = parseFloat(val) || 0;
+      const height = Math.min(100, Math.max(0, 50 + (v * 2)));
+      let colorOverride = '';
+      if (colorClass === 'meter-cyan' && v < 0) colorOverride = 'background: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);';
+      else if (colorClass === 'meter-green' && v < 0) colorOverride = 'background: #ef4444; box-shadow: 0 0 10px rgba(239, 68, 68, 0.4);';
       const displayVal = Math.abs(v) > 99 ? Math.round(v) : v.toFixed(1);
       return `<div class="sensor-meter"><div class="meter-track"><div class="meter-fill ${colorClass}" style="height:${height}%; ${colorOverride}"></div></div><span class="meter-val" style="font-size:11px">${displayVal}</span></div>`;
     };

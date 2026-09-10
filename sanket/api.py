@@ -242,10 +242,10 @@ def get_project_details(project_id: str) -> Dict[str, Any]:
 
     return sanitize_for_json({
         "project_id": str(rec["project_id"]),
-        "project_name": str(rec.get("project_name", rec["project_id"])),
-        "sector": str(rec.get("sector_display", rec.get("sector_clean", "OTHER"))),
-        "ministry": str(rec.get("ministry", "—")),
-        "state": str(rec.get("state", "—")),
+        "project_name": str(rec["project_name"]) if pd.notna(rec.get("project_name")) else str(rec["project_id"]),
+        "sector": str(rec["sector_display"]) if pd.notna(rec.get("sector_display")) else (str(rec["sector_clean"]) if pd.notna(rec.get("sector_clean")) else "OTHER"),
+        "ministry": str(rec["ministry"]) if pd.notna(rec.get("ministry")) else "—",
+        "state": str(rec["state"]) if pd.notna(rec.get("state")) else "—",
         "approved_cost": float(rec.get("approved_cost", 0.0)),
         "total_observations": int(rec.get("observation_number", 1)),
         "start_month": str(rec.get("start_month", "Unknown")),
@@ -720,7 +720,7 @@ def generate_project_brief(payload: ProjectBriefRequest) -> Dict[str, Any]:
         )
 
         response = client.models.generate_content(
-            model="gemini-3.0-flash",
+            model="gemini-2.5-flash",
             contents=f"Project Context: {context}",
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,

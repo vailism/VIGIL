@@ -59,7 +59,8 @@ const Charts = (() => {
     function yPos(v) { return padT + chartH - (v / yMax) * chartH; }
 
     function polyline(data, color, dash = false) {
-      const pts = data.map((v, i) => `${xPos(i)},${yPos(v)}`).join(' ');
+      const pts = data.map((v, i) => v !== null ? `${xPos(i)},${yPos(v)}` : null).filter(Boolean).join(' ');
+      if (!pts) return '';
       return `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2"
         stroke-linecap="round" stroke-linejoin="round"
         ${dash ? 'stroke-dasharray="6 4"' : ''}/>`;
@@ -74,10 +75,18 @@ const Charts = (() => {
     }
 
     // Shaded area between contractor and sanket (discrepancy zone)
-    let areaPath = `M ${xPos(0)},${yPos(contractorReport[0])}`;
-    for (let i = 1; i < n; i++) areaPath += ` L ${xPos(i)},${yPos(contractorReport[i])}`;
-    for (let i = n - 1; i >= 0; i--) areaPath += ` L ${xPos(i)},${yPos(sanketTelemetry[i])}`;
-    areaPath += ' Z';
+    let areaPath = '';
+    let firstTop = contractorReport.findIndex(v => v !== null);
+    if (firstTop !== -1) {
+      areaPath = `M ${xPos(firstTop)},${yPos(contractorReport[firstTop])}`;
+      for (let i = firstTop + 1; i < n; i++) {
+        if (contractorReport[i] !== null) areaPath += ` L ${xPos(i)},${yPos(contractorReport[i])}`;
+      }
+      for (let i = n - 1; i >= 0; i--) {
+        if (sanketTelemetry[i] !== null) areaPath += ` L ${xPos(i)},${yPos(sanketTelemetry[i])}`;
+      }
+      areaPath += ' Z';
+    }
 
     let annotations = '';
 
