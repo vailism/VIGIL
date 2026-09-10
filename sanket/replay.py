@@ -122,12 +122,15 @@ def replay_project_from_dataframe(
     # Step 2: Generate point-in-time predictions for each monthly report
     first_alert = None
 
+    from sanket.inference import predict_batch_in_time
+    batch_preds = predict_batch_in_time(p_df, engine=engine)
+
     for i in range(n_obs):
         row = p_df.iloc[i]
         m_ym = row["reporting_month"]
 
         # Point-in-time prediction using ONLY features available at or before index i
-        pred_res = predict_point_in_time(row, engine=engine)
+        pred_res = batch_preds[i]
 
         rec = {
             "reporting_month": m_ym,

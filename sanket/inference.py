@@ -239,3 +239,79 @@ def predict_point_in_time(
         "alert": alert,
         "top_explanations": explanations
     }
+
+def predict_batch_in_time(
+    features_df: pd.DataFrame,
+    engine: Optional[Dict[str, Any]] = None,
+    top_k: int = 3
+) -> List[Dict[str, Any]]:
+    """
+    Perform point-in-time risk scoring for a batch of observations (e.g. a project's timeline).
+    Dramatically faster than looping predict_point_in_time row-by-row.
+    """
+    if engine is None:
+        engine = load_inference_engine()
+
+    model = engine["model"]
+    calibrator = engine.get("calibrator")
+    feature_names = engine["features"]
+    cat_features = engine["categorical_features"]
+
+    X_in = pd.DataFrame(index=features_df.index)
+    for f in feature_names:
+        if f in features_df.columns:
+            X_in[f] = features_df[f].copy()
+        else:
+            X_in[f] = np.nan
+
+    for cat in cat_features:
+        if cat in X_in.columns:
+            X_in[cat] = X_in[cat].astype("category")
+
+    raw_probs = model.predict_proba(X_in)[:, 1]
+
+    if calibrator is not None:
+        calib_probs = np.clip(calibrator.predict(raw_probs), 0.0, 1.0)
+    else:
+        calib_probs = raw_probs
+
+    contribs_matrix = model.booster_.predict(X_in, pred_contrib=True)
+
+    results = []
+    for i in range(len(features_df)):
+        raw_prob = float(raw_probs[i])
+        calib_prob = float(calib_probs[i])
+        risk_tier = get_risk_tier(calib_prob)
+        alert = (risk_tier in ["WATCH", "REVIEW", "ESCALATE"])
+
+        feat_contribs = contribs_matrix[i, :-1]
+        ranked_indices = np.argsort(feat_contribs)[::-1]
+
+        explanations = []
+        for idx in ranked_indices:
+            contrib = float(feat_contribs[idx])
+            if contrib <= 0.0 and len(explanations) >= top_k:
+                break
+            feat = feature_names[idx]
+            val = X_in.iloc[i][feat]
+            text = generate_feature_explanation(feat, val)
+
+            explanations.append({
+                "feature": feat,
+                "value": float(val) if isinstance(val, (int, float, np.number)) and not pd.isna(val) else (str(val) if not pd.isna(val) else None),
+                "contribution": round(contrib, 4),
+                "explanation": text
+            })
+            if len(explanations) >= top_k:
+                break
+
+        results.append({
+            "raw_prob": round(raw_prob, 4),
+            "pred_prob": round(calib_prob, 4),
+            "calibrated_prob": round(calib_prob, 4),
+            "risk_tier": risk_tier,
+            "alert": alert,
+            "top_explanations": explanations
+        })
+
+    return results
