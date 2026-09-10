@@ -720,7 +720,7 @@ def generate_project_brief(payload: ProjectBriefRequest) -> Dict[str, Any]:
         )
 
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.6-flash",
             contents=f"Project Context: {context}",
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction,
@@ -777,7 +777,7 @@ def assistant_chat(payload: AssistantRequest) -> Dict[str, Any]:
         )
         
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.6-flash",
             contents=payload.message,
             config=types.GenerateContentConfig(
                 system_instruction=system_instruction
