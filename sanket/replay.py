@@ -220,6 +220,8 @@ def get_project_replay(
     if p_df.empty:
         raise ValueError(f"Project ID '{project_id}' not found in longitudinal dataset.")
 
+    p_df = p_df.sort_values("reporting_month").reset_index(drop=True)
+
     return replay_project_from_dataframe(p_df, engine=engine)
 
 def replay_project(

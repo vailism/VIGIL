@@ -1,0 +1,164 @@
+{
+  "_metadata": {
+    "schema_version": "1.0",
+    "generation_timestamp": "2026-09-10T16:52:17.558654+00:00",
+    "source_dataset_path": "DATA/model_dataset.parquet",
+    "source_dataset_hash": "517efa55298b02cabeab393e4ae385817c31c64b999a499bb73bf9f43d616c05",
+    "active_window_start": "2024-01"
+  },
+  "metrics": {
+    "active_project_count": 2319,
+    "historical_project_count": 1852,
+    "genuine_project_count": 4171,
+    "total_archive_entities": 115693,
+    "archive_start": "2003-02",
+    "archive_end": "2025-03",
+    "latest_data_month": "2025-03",
+    "active_baseline_exposure": 3824415.2499999995,
+    "exposure_in_escalate": 173656.02000000002,
+    "risk_weighted_exposure": 1478342.1500000001,
+    "watch_count": 1050,
+    "review_count": 170,
+    "escalate_count": 161,
+    "normal_count": 938,
+    "historical_median_warning_lead": 6.5,
+    "sector_breakdown": [
+      {
+        "sector": "Road Transport And Highways",
+        "total_projects": 1133,
+        "escalate_count": 56,
+        "review_count": 69,
+        "watch_count": 528,
+        "total_exposure": 922895.34
+      },
+      {
+        "sector": "Railways",
+        "total_projects": 330,
+        "escalate_count": 53,
+        "review_count": 42,
+        "watch_count": 157,
+        "total_exposure": 699423.8900000001
+      },
+      {
+        "sector": "Petroleum",
+        "total_projects": 208,
+        "escalate_count": 12,
+        "review_count": 10,
+        "watch_count": 104,
+        "total_exposure": 601493.5599999999
+      },
+      {
+        "sector": "Power",
+        "total_projects": 168,
+        "escalate_count": 12,
+        "review_count": 23,
+        "watch_count": 64,
+        "total_exposure": 527894.9299999999
+      },
+      {
+        "sector": "Urban Development",
+        "total_projects": 32,
+        "escalate_count": 0,
+        "review_count": 3,
+        "watch_count": 22,
+        "total_exposure": 314125.35000000003
+      },
+      {
+        "sector": "Coal",
+        "total_projects": 195,
+        "escalate_count": 9,
+        "review_count": 8,
+        "watch_count": 89,
+        "total_exposure": 276137.32999999996
+      },
+      {
+        "sector": "Atomic Energy",
+        "total_projects": 5,
+        "escalate_count": 0,
+        "review_count": 0,
+        "watch_count": 5,
+        "total_exposure": 167447.0
+      },
+      {
+        "sector": "Steel",
+        "total_projects": 26,
+        "escalate_count": 0,
+        "review_count": 0,
+        "watch_count": 6,
+        "total_exposure": 85059.79000000001
+      },
+      {
+        "sector": "Water Resources",
+        "total_projects": 41,
+        "escalate_count": 2,
+        "review_count": 3,
+        "watch_count": 29,
+        "total_exposure": 69572.77
+      },
+      {
+        "sector": "Telecommunications",
+        "total_projects": 7,
+        "escalate_count": 0,
+        "review_count": 0,
+        "watch_count": 2,
+        "total_exposure": 61903.33999999999
+      },
+      {
+        "sector": "Civil Aviation",
+        "total_projects": 60,
+        "escalate_count": 13,
+        "review_count": 9,
+        "watch_count": 27,
+        "total_exposure": 43379.600000000006
+      },
+      {
+        "sector": "OTHER",
+        "total_projects": 88,
+        "escalate_count": 2,
+        "review_count": 0,
+        "watch_count": 0,
+        "total_exposure": 28708.28
+      },
+      {
+        "sector": "Mines",
+        "total_projects": 9,
+        "escalate_count": 0,
+        "review_count": 1,
+        "watch_count": 6,
+        "total_exposure": 10000.880000000001
+      },
+      {
+        "sector": "Health and Family Welfare",
+        "total_projects": 10,
+        "escalate_count": 1,
+        "review_count": 1,
+        "watch_count": 6,
+        "total_exposure": 7912.119999999999
+      },
+      {
+        "sector": "Shipping and Ports",
+        "total_projects": 1,
+        "escalate_count": 0,
+        "review_count": 0,
+        "watch_count": 1,
+        "total_exposure": 5061.15
+      },
+      {
+        "sector": "Finance",
+        "total_projects": 5,
+        "escalate_count": 0,
+        "review_count": 1,
+        "watch_count": 4,
+        "total_exposure": 3199.92
+      },
+      {
+        "sector": "Defence",
+        "total_projects": 1,
+        "escalate_count": 1,
+        "review_count": 0,
+        "watch_count": 0,
+        "total_exposure": 200.0
+      }
+    ]
+  }
+}

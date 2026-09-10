@@ -23,6 +23,7 @@ Key Objectives:
 
 import os
 import re
+import json
 from typing import Dict, List, Any, Optional, Tuple
 import numpy as np
 import pandas as pd
@@ -178,134 +179,40 @@ class SanitizedPortfolio:
         self._load_and_sanitize()
 
     def _load_and_sanitize(self):
-        actual_dataset_path = get_artifact(self.dataset_path)
-        actual_lead_time_path = get_artifact(self.lead_time_path)
-        
-        if not os.path.exists(actual_dataset_path):
-            raise FileNotFoundError(f"Dataset '{actual_dataset_path}' does not exist.")
+        metrics_path = get_artifact("DATA/portfolio_metrics.json")
+        active_path = get_artifact("DATA/portfolio_active.parquet")
+        hist_path = get_artifact("DATA/portfolio_historical.parquet")
+        gen_path = get_artifact("DATA/portfolio_genuine.parquet")
 
-        engine = load_inference_engine()
-        self.engine = engine
-        features = engine["features"]
-        cat_features = engine["categorical_features"]
+        if not os.path.exists(metrics_path):
+            raise FileNotFoundError(f"Portfolio metrics cache '{metrics_path}' missing.")
 
-        cols = list(set(features + [
-            "project_id", "project_name", "sector", "sector_clean",
-            "ministry", "state", "reporting_month", "approved_cost",
-            "revised_cost", "C_base", "expenditure", "financial_progress"
-        ]))
+        with open(metrics_path, "r") as f:
+            data = json.load(f)
 
-        import pyarrow.parquet as pq
-        schema = pq.read_schema(actual_dataset_path)
-        actual_cols = [c for c in cols if c in schema.names]
+        meta = data.get("_metadata", {})
+        if "source_dataset_hash" not in meta or "schema_version" not in meta:
+            raise ValueError("Invalid portfolio_metrics.json: missing required artifact metadata.")
 
-        df_full = pd.read_parquet(actual_dataset_path, columns=actual_cols)
+        metrics = data.get("metrics", {})
 
-        # Total extracted identities across longitudinal archive
-        self.total_archive_entities = int(df_full["project_id"].nunique())
-        self.archive_start = str(df_full["reporting_month"].min())
-        self.archive_end = str(df_full["reporting_month"].max())
-        self.latest_data_month = self.archive_end
+        self.active_projects_df = pd.read_parquet(active_path)
+        self.historical_projects_df = pd.read_parquet(hist_path)
+        self.genuine_projects_df = pd.read_parquet(gen_path)
 
-        # Deduplicate strictly by reporting_month to extract latest observation per entity
-        df_sorted = df_full.sort_values("reporting_month")
-        latest_all = df_sorted.groupby("project_id").last().reset_index()
+        if len(self.active_projects_df) != metrics.get("active_project_count"):
+            raise ValueError("Artifact corruption: active_projects_df row count does not match metrics.")
 
-        # Identify genuine projects vs macro artifacts
-        genuine_flags = [
-            is_genuine_project(pid, name)
-            for pid, name in zip(latest_all["project_id"], latest_all["project_name"])
-        ]
-        latest_all["is_genuine"] = genuine_flags
+        for k, v in metrics.items():
+            setattr(self, k, v)
 
-        # Partition
-        genuine_df = latest_all[latest_all["is_genuine"]].copy()
-        self.genuine_project_count = int(len(genuine_df))
-        self.excluded_macro_summary_count = int(self.total_archive_entities - self.genuine_project_count)
+        self._engine = None
 
-        # Active vs Historical partition
-        # Reference date: latest observation >= '2024-01' is ACTIVE
-        active_mask = genuine_df["reporting_month"] >= "2024-01"
-        self.active_projects_df = genuine_df[active_mask].copy().reset_index(drop=True)
-        self.historical_projects_df = genuine_df[~active_mask].copy().reset_index(drop=True)
-
-        self.active_project_count = int(len(self.active_projects_df))
-        self.historical_project_count = int(len(self.historical_projects_df))
-
-        # Score active portfolio using frozen inference engine
-        X_active = pd.DataFrame(index=self.active_projects_df.index)
-        for f in features:
-            if f in self.active_projects_df.columns:
-                X_active[f] = self.active_projects_df[f]
-            else:
-                X_active[f] = np.nan
-
-        for cat in cat_features:
-            if cat in X_active.columns:
-                X_active[cat] = X_active[cat].astype("category")
-
-        raw_probs = engine["model"].predict_proba(X_active)[:, 1]
-        cal_probs = engine["calibrator"].predict(raw_probs)
-
-        self.active_projects_df["latest_risk"] = np.round(cal_probs, 4)
-        self.active_projects_df["risk_tier"] = [get_risk_tier(p) for p in cal_probs]
-        self.active_projects_df["latest_risk_tier"] = self.active_projects_df["risk_tier"]
-
-        cbase_vals = pd.to_numeric(self.active_projects_df["C_base"], errors="coerce").fillna(0).values
-        self.active_projects_df["baseline_cost"] = np.round(cbase_vals, 2)
-        self.active_projects_df["priority_score"] = np.round(
-            self.active_projects_df["latest_risk"] * self.active_projects_df["baseline_cost"], 2
-        )
-        self.active_projects_df["risk_weighted_exposure"] = self.active_projects_df["priority_score"]
-
-        # Clean display columns
-        self.active_projects_df["sector_display"] = (
-            self.active_projects_df["sector_clean"]
-            .fillna(self.active_projects_df.get("sector", "OTHER"))
-            .fillna("OTHER")
-        )
-        self.active_projects_df["state"] = self.active_projects_df["state"].fillna("—")
-        self.active_projects_df["ministry"] = self.active_projects_df["ministry"].fillna("—")
-
-        # Operational risk counts (active portfolio only)
-        self.watch_count = int((self.active_projects_df["risk_tier"] == "WATCH").sum())
-        self.review_count = int((self.active_projects_df["risk_tier"] == "REVIEW").sum())
-        self.escalate_count = int((self.active_projects_df["risk_tier"] == "ESCALATE").sum())
-        self.normal_count = int((self.active_projects_df["risk_tier"] == "NORMAL").sum())
-
-        # Exposure metrics (active portfolio only)
-        self.active_baseline_exposure = float(round(self.active_projects_df["baseline_cost"].sum(), 2))
-        esc_mask = self.active_projects_df["risk_tier"] == "ESCALATE"
-        self.exposure_in_escalate = float(round(self.active_projects_df.loc[esc_mask, "baseline_cost"].sum(), 2))
-        self.risk_weighted_exposure = float(round(self.active_projects_df["risk_weighted_exposure"].sum(), 2))
-
-        # Historical median lead time benchmark
-        self.historical_median_warning_lead = 3.0
-        if os.path.exists(actual_lead_time_path):
-            try:
-                df_lt = pd.read_parquet(actual_lead_time_path)
-                if "event_lead_time" in df_lt.columns:
-                    self.historical_median_warning_lead = float(df_lt["event_lead_time"].median())
-            except Exception:
-                self.historical_median_warning_lead = 3.0
-
-        # Sector breakdown (sanitized active portfolio)
-        sector_groups = self.active_projects_df.groupby("sector_display")
-        breakdown = []
-        for s_name, s_df in sector_groups:
-            breakdown.append({
-                "sector": str(s_name),
-                "total_projects": int(len(s_df)),
-                "escalate_count": int((s_df["risk_tier"] == "ESCALATE").sum()),
-                "review_count": int((s_df["risk_tier"] == "REVIEW").sum()),
-                "watch_count": int((s_df["risk_tier"] == "WATCH").sum()),
-                "total_exposure": round(float(s_df["baseline_cost"].sum()), 2)
-            })
-        breakdown.sort(key=lambda x: x["total_exposure"], reverse=True)
-        self.sector_breakdown = breakdown
-
-        # Also prepare all genuine projects scored/indexed for lookup
-        self.genuine_projects_df = genuine_df
+    @property
+    def engine(self):
+        if self._engine is None:
+            self._engine = load_inference_engine()
+        return self._engine
 
     def get_summary_dict(self) -> Dict[str, Any]:
         """Return high-level summary metrics for Command Center."""
